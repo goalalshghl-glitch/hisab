@@ -395,7 +395,7 @@ function findDaily(ref){var p=String(ref).split('|');return (S.daily[p[0]]||[]).
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
 /* ---------- sync with Firebase (offline first) ---------- */
-var ADMIN_EMAIL='goalashghl@gmail.com';
+var ADMIN_EMAIL='goalalshghl@gmail.com';
 var timer=null, loaded=false, pendingRemote=false, saveState='busy', saveMsg='جاري التحميل…';
 var base={settings:null,tenants:[],partners:[],ledger:[],daily:[],months:{}}, got={}, pend={}, S0=null;
 var authUser, profile=null, users=[], unsubs=[], dataStarted=false, authBusy=false, authErr='', authTab='in', fbReady=false, online=navigator.onLine;
