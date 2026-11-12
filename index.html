@@ -342,7 +342,7 @@ function dayItems(key){
     var pd=mo.paid||{};
     S.tenants.forEach(function(t){if(pd[t.id]===key)a.push({src:'rent',person:t.name,note:'إيجار '+(+t.units||0)+' فتحة',kind:'in',amount:rent(t)});});
     if(mo.ownerPaid&&mo.ownerPaidOn===key)a.push({src:'owner',person:'نصيب '+ownerRaw(),note:'',kind:'out',amount:ownerMonthly()});
-    if(+mo.repairs>0&&mo.repairsOn===key)a.push({src:'repairs',person:'مصاريف التصليح',note:'',kind:'out',amount:+mo.repairs});
+    if(+mo.repairs>0&&mo.repairsOn===key)a.push({src:'repairs',person:'المصاريف التشغيلية',note:'',kind:'out',amount:+mo.repairs});
   });
   S.ledger.forEach(function(r){if(r.date===key&&(r.note||r.in!==''||r.out!=='')){
     if(+r.in)a.push({src:'ledger',person:r.note||'مصروف تشغيلي',kind:'in',amount:+r.in});
@@ -611,7 +611,7 @@ function vHome(){
   h+='<div class="kpis">'+
     '<div class="kpi main">'+pen('total')+'<span class="tile t-mint">'+I.coin+'</span><small>'+lbl('total','إجمالي الإيجار السنوي من كل المستأجرين')+'</small><b>'+sar(annual)+'</b><small>شهرياً '+fmt(annual/12)+' ريال'+(hasOv?' · مبلغ مكتوب يدوي':'')+'</small></div>'+
     '<div class="kpi">'+pen('owner')+'<span class="tile t-sand">'+I.crown+'</span><small>'+lbl('owner','نصيب '+ownerRaw()+' السنوي')+'</small><b>'+sar(owner)+'</b><small>شهرياً '+fmt(ownerMonthly())+'</small></div>'+
-    '<div class="kpi">'+pen('rest')+'<span class="tile t-sky">'+I.people+'</span><small>'+lbl('rest','الباقي للشركاء والتصليح')+'</small><b>'+sar(annual-owner)+'</b><small>في السنة</small></div>'+
+    '<div class="kpi">'+pen('rest')+'<span class="tile t-sky">'+I.people+'</span><small>'+lbl('rest','الباقي للشركاء والمصاريف التشغيلية')+'</small><b>'+sar(annual-owner)+'</b><small>في السنة</small></div>'+
     '</div>';
   h+='<div class="card kpi-card">'+pen('progress')+'<div class="card-head"><span class="tile t-sand">'+I.crown+'</span><div class="grow"><h2>'+lbl('progress','نصيب '+ownerRaw())+'</h2><p>انصرف '+t.paidMonths+' من 12 شهر</p></div></div>'+
     '<div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+
@@ -620,7 +620,7 @@ function vHome(){
   h+='<div class="kpis">'+
     '<div class="kpi main">'+pen('col')+'<span class="tile t-mint">'+I.check+'</span><small>'+lbl('col','المحصّل من المستأجرين')+'</small><b>'+sar(t.col)+'</b></div>'+
     '</div>'+homePartners(t)+'<div class="kpis">'+
-    '<div class="kpi main">'+pen('rem')+'<span class="tile t-sky">'+I.people+'</span><small>'+lbl('rem','الباقي للشركاء حتى الآن (بعد نصيب '+ownerRaw()+' والتصليح)')+'</small><b class="'+(t.rem<0?'neg':'')+'">'+sar(t.rem)+'</b></div>'+
+    '<div class="kpi main">'+pen('rem')+'<span class="tile t-sky">'+I.people+'</span><small>'+lbl('rem','الباقي للشركاء حتى الآن (بعد نصيب '+ownerRaw()+' والمصاريف التشغيلية)')+'</small><b class="'+(t.rem<0?'neg':'')+'">'+sar(t.rem)+'</b></div>'+
     '<div class="kpi main">'+pen('ledger')+'<span class="tile t-rose">'+I.receipt+'</span><small>'+lbl('ledger','رصيد المصاريف التشغيلية')+' · مستلم '+fmt(Lg.tin)+' · مدفوع '+fmt(Lg.tout)+'</small><b class="'+(Lg.bal<0?'neg':'')+'">'+sar(Lg.bal)+'</b></div>'+
     '</div>';
   h+='<h3 class="section-title">أشهر السنة</h3><div class="card"><div class="months">'+MONTHS.map(function(n,i){
@@ -651,8 +651,8 @@ function vMonthly(){
       '<button class="pay'+(on?' on':'')+'" data-pay="'+esc(t.id)+'" aria-pressed="'+on+'">'+(on?I.check+' دفع':I.clock+' ما دفع')+'</button></div>';
   });
   h+='</div></div>';
-  h+='<div class="card form"><div class="card-head" style="margin:0"><span class="tile t-rose">'+I.wrench+'</span><div class="grow"><h2>التصليح ونصيب '+ON()+'</h2><p>مصاريف التصليح تنخصم من حصة الشركاء</p></div></div>'+
-    '<div class="field"><label for="rep">مصاريف التصليح لهالشهر (ريال)'+(+m.repairs>0&&m.repairsOn?' · '+dayLabel(m.repairsOn):'')+'</label><input class="input num" id="rep" inputmode="numeric" value="'+(+m.repairs||'')+'" placeholder="0"></div>'+
+  h+='<div class="card form"><div class="card-head" style="margin:0"><span class="tile t-rose">'+I.wrench+'</span><div class="grow"><h2>المصاريف التشغيلية ونصيب '+ON()+'</h2><p>المصاريف التشغيلية تنخصم من حصة الشركاء</p></div></div>'+
+    '<div class="field"><label for="rep">المصاريف التشغيلية لهالشهر (ريال)'+(+m.repairs>0&&m.repairsOn?' · '+dayLabel(m.repairsOn):'')+'</label><input class="input num" id="rep" inputmode="numeric" value="'+(+m.repairs||'')+'" placeholder="0"></div>'+
     '<button class="toggle'+(m.ownerPaid?' on':'')+'" data-owner aria-pressed="'+m.ownerPaid+'"><div><b>انصرف نصيب '+ON()+'</b><small class="num">'+fmt(ownerMonthly())+' ريال'+(m.ownerPaid&&m.ownerPaidOn?' · '+dayLabel(m.ownerPaidOn):'')+'</small></div><span class="sw"></span></button>'+
     '<div class="field"><label for="notes">ملاحظات</label><textarea class="input" id="notes" placeholder="مثلاً: فلان بيدفع آخر الشهر">'+esc(m.notes)+'</textarea></div></div>';
   return h;
@@ -729,7 +729,7 @@ function homePartners(t){
 function vPartners(){
   var t=totals(), annualRest=annualTotal()-(+S.settings.ownerAnnual||0);
   var sum=S.partners.reduce(function(a,p){return a+(+p.percent||0);},0);
-  var h='<div class="card"><div class="card-head"><span class="tile t-sky">'+I.people+'</span><div class="grow"><h2>الشركاء</h2><p>يتقسم عليهم الباقي بعد نصيب '+ON()+' والتصليح</p></div></div>'+
+  var h='<div class="card"><div class="card-head"><span class="tile t-sky">'+I.people+'</span><div class="grow"><h2>الشركاء</h2><p>يتقسم عليهم الباقي بعد نصيب '+ON()+' والمصاريف التشغيلية</p></div></div>'+
     '<div class="mini"><div><small>الباقي السنوي المتوقع</small><b class="num">'+fmt(annualRest-t.rep)+'</b></div><div><small>المتحقق حتى الآن</small><b class="num '+(t.rem<0?'neg':'')+'">'+fmt(t.rem)+'</b></div></div>'+
     (Math.round(sum)!==100?'<p class="warnline">مجموع النسب '+fmt(sum)+'٪، لازم يكون 100٪</p>':'')+'</div>';
   h+='<div class="card"><div class="list">';
@@ -888,11 +888,11 @@ function partnerForm(p){
 var CARD_DEF={
   total:{t:'إجمالي الإيجار السنوي من كل المستأجرين',amount:'override',auto:'يتحسب من إيجارات المستأجرين. اكتب مبلغ إذا تبي تحطه بيدك، أو خلّه فاضي عشان يتحسب لحاله.'},
   owner:{t:null,amount:'owner'},
-  rest:{t:'الباقي للشركاء والتصليح',auto:'يتحسب لحاله: الإجمالي ناقص النصيب الثابت. غيّر المبلغين اللي فوقه عشان يتغير.'},
+  rest:{t:'الباقي للشركاء والمصاريف التشغيلية',auto:'يتحسب لحاله: الإجمالي ناقص النصيب الثابت. غيّر المبلغين اللي فوقه عشان يتغير.'},
   progress:{t:null,auto:'يمشي حسب الأشهر اللي أشّرت فيها إن النصيب انصرف في صفحة الدخل.'},
   col:{t:'المحصّل من المستأجرين',auto:'يتجمع من الدفعات اللي تأشّر عليها في صفحة الدخل.',go:'monthly'},
-  rep:{t:'مصاريف التصليح',auto:'يتجمع من مصاريف التصليح اللي تكتبها في كل شهر في صفحة الدخل.',go:'monthly'},
-  rem:{t:null,auto:'يتحسب لحاله: المحصّل ناقص النصيب الثابت والتصليح.'},
+  rep:{t:'المصاريف التشغيلية',auto:'يتجمع من المصاريف التشغيلية اللي تكتبها في كل شهر في صفحة الدخل.',go:'monthly'},
+  rem:{t:null,auto:'يتحسب لحاله: المحصّل ناقص النصيب الثابت والمصاريف التشغيلية.'},
   ledger:{t:'رصيد المصاريف التشغيلية',auto:'يتحسب من جدول المصاريف التشغيلية.',go:'expenses'}
 };
 function cardForm(k){
@@ -904,7 +904,7 @@ function cardForm(k){
       '<div class="field"><label for="c-amt">المبلغ السنوي (ريال)</label><input class="input num" id="c-amt" inputmode="decimal" autocomplete="off" value="'+esc(amt(S.settings.ownerAnnual))+'"></div>'+
       '<p class="hint">الاسم يتغير في كل مكان بالنظام، والمبلغ الشهري يتحسب لحاله (السنوي ÷ 12).</p>';
   }else{
-    var def=c.t||(k==='progress'?'نصيب '+ownerRaw():'الباقي للشركاء حتى الآن (بعد نصيب '+ownerRaw()+' والتصليح)');
+    var def=c.t||(k==='progress'?'نصيب '+ownerRaw():'الباقي للشركاء حتى الآن (بعد نصيب '+ownerRaw()+' والمصاريف التشغيلية)');
     html+='<div class="field"><label for="c-label">العنوان</label><input class="input" id="c-label" value="'+esc(L[k]||'')+'" placeholder="'+esc(def)+'"></div>';
     if(c.amount==='override'){
       var o=S.settings.annualOverride;
