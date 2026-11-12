@@ -217,6 +217,11 @@ label.btn{cursor:pointer}
 .nav::-webkit-scrollbar{display:none}
 .nav button{flex:1 0 auto;min-width:58px;padding:8px 6px;white-space:nowrap}
 
+.ro-hide{display:none!important}
+.ro-static{pointer-events:none;cursor:default}
+.pay.ro-static:not(.on){opacity:.7}
+#root input:disabled,#root textarea:disabled{opacity:1;color:var(--ink);background:transparent;cursor:default}
+
 /* excel-like ledger */
 .sheet{overflow-x:auto;border:1px solid #cfe0da;border-radius:14px;background:#fff}
 .xl{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
@@ -462,6 +467,7 @@ function statusLine(){
 }
 function refreshStatus(){var s=statusLine();setSave(s[0],s[1]);}
 function commit(noRender){
+  if(!isAdmin()){S=build();S0=clone(S);render();return;}
   rememberView();
   try{sessionStorage.setItem('selMonth',String(sel));}catch(e){}
   if(!approved())return;
@@ -782,9 +788,18 @@ function render(){
   if(!loaded){root.innerHTML=header()+vLoading('جاري تحميل البيانات…');refreshStatus();return;}
   var body={home:vHome,monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:vSetup,users:vUsers}[view]();
   if(view==='home')body=vImport()+body;
+  if(!isAdmin())body='<div class="note ro-note">'+I.info+'<div>أنت تشوف الحسابات <b>عرض فقط</b>. التعديل للمدير بس.</div></div>'+body;
   root.innerHTML=header()+nav()+body+
     '<p class="foot">'+I.shield+' تعديلاتك تنحفظ في جوالك على طول، وتتزامن مع الكل لما يكون فيه نت</p>';
   refreshStatus();
+  if(!isAdmin())lockView(root);
+}
+var EDIT_ATTRS=['pay','allpaid','owner','addT','editT','delT','addP','editP','delP','addL','delL','addDay','editDay','delDay','card','newyear','saveSetup','import','approve','reject'];
+function isEditCtl(el){var d=el.dataset||{};return EDIT_ATTRS.some(function(k){return d[k]!==undefined;});}
+function lockView(root){
+  root.querySelectorAll('.stamp').forEach(function(el){el.classList.add('ro-hide');});
+  root.querySelectorAll('input,textarea,select').forEach(function(el){el.disabled=true;});
+  root.querySelectorAll('button,[data-card],label[for="restore-file"]').forEach(function(el){var d=el.dataset||{};if(d.pay!==undefined||d.owner!==undefined){el.disabled=true;el.classList.add('ro-static');}else if(isEditCtl(el)||el.tagName==='LABEL')el.classList.add('ro-hide');});
 }
 
 /* ---------- dialogs ---------- */
@@ -888,6 +903,7 @@ document.addEventListener('click',function(ev){
     if(ad.import!==undefined){importData(SEED,true);return;}
     if(ad.backup!==undefined){downloadBackup();return;}
   }
+  if(!isAdmin()){var ec=ev.target.closest('button,[data-card]');if(ec&&!ec.closest('#modal')&&isEditCtl(ec))return;}
   var pn=ev.target.closest('[data-card]');if(pn&&!pn.closest('#modal')){cardForm(pn.dataset.card);return;}
   var b=ev.target.closest('button');if(!b||b.closest('#modal'))return;
   var d=b.dataset;
@@ -921,6 +937,7 @@ document.addEventListener('submit',function(ev){
     .catch(function(e){authBusy=false;authErr=errText(e);render();});
 });
 document.addEventListener('change',function(ev){
+  if(authUser&&approved()&&!isAdmin()&&ev.target.closest('#root')){render();return;}
   if(ev.target.id==='restore-file'){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var data=JSON.parse(rd.result);confirmBox('استرجاع النسخة؟ البيانات اللي في الملف بتنضاف وتحدّث الموجود.','استرجاع',function(){importData(data,false);});}catch(e){setSave('err','الملف مو نسخة احتياطية صحيحة');}};rd.readAsText(f);ev.target.value='';return;}
   var id=ev.target.id;
   if(id==='stamp-date'){var sp=ev.target.value.split('-');if(sp.length===3&&+sp[1]-1===sel){selDay=+sp[2];try{sessionStorage.setItem('selDay',String(selDay));}catch(e){}var sh=document.getElementById('stamp-hj');if(sh)sh.textContent=hijri(ev.target.value)?'يوافق '+hijri(ev.target.value)+'هـ':'';}else{ev.target.value=stampKey();}return;}
