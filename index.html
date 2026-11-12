@@ -362,7 +362,7 @@ function vDaily(){
     items.forEach(function(x){if(x.kind==='out')dout+=x.amount;else di+=x.amount;});
     h+='<div class="dgroup"><div class="dg-head"><div class="dg-date"><b class="num">'+slash(k)+'م</b><small class="num">'+(hijri(k)?hijri(k)+'هـ':'')+'</small></div><span>'+wday(k)+'</span><em class="num">'+(di?'<i class="pos">+'+fmt(di)+'</i>':'')+(dout?'<i class="neg">−'+fmt(dout)+'</i>':'')+'</em></div><div class="list">';
     items.forEach(function(x){
-      h+='<div class="row"><div class="info"><b>'+esc(x.person)+(x.src==='ledger'?'<span class="tag">من المصاريف التشغيلية</span>':x.src!=='daily'?'<span class="tag">من التحصيل</span>':'')+'</b>'+(x.note?'<small>'+esc(x.note)+'</small>':'')+'</div>'+
+      h+='<div class="row"><div class="info"><b>'+esc(x.person)+(x.src==='ledger'?'<span class="tag">من الخرج</span>':x.src!=='daily'?'<span class="tag">من الدخل</span>':'')+'</b>'+(x.note?'<small>'+esc(x.note)+'</small>':'')+'</div>'+
         '<div class="amt num '+(x.kind==='out'?'neg':'pos')+'">'+(x.amount?fmt(x.amount):'—')+'<small>'+(x.kind==='out'?'مدفوع':'مستلم')+'</small></div>'+
         (x.src==='daily'?'<div class="actions"><button class="icon-btn" data-edit-day="'+k+'|'+esc(x.id)+'" aria-label="تعديل '+esc(x.person)+'">'+I.edit+'</button><button class="icon-btn del" data-del-day="'+k+'|'+esc(x.id)+'" aria-label="حذف '+esc(x.person)+'">'+I.trash+'</button></div>':x.src==='ledger'?'<div class="actions"><button class="icon-btn" data-go="expenses" aria-label="فتح المصاريف التشغيلية">'+I.receipt+'</button></div>':'')+
         '</div>';
@@ -559,12 +559,12 @@ function header(){
     '<span class="chip">'+I.building+' '+esc(S.settings.title)+' · '+esc(S.settings.year)+'</span>'+
     '<h1>نظام <span>الحساب</span></h1>'+
     (function(){var t=today(),h=hijri(t);return '<p class="today num"><span class="nw">اليوم '+wday(t)+'</span> <span class="nw">'+t.replace(/-/g,'/')+'م</span>'+(h?' <span class="nw">· '+h+'هـ</span>':'')+'</p>';})()+
-    '<p>الإيجارات، نصيب '+ON()+'، وحصص الشركاء في مكان واحد</p></div>'+
+    '</div>'+
     '<div class="hero-badge">'+I.fuel+'<i>'+I.coin+'</i></div></div>'+
     '<div class="hero-foot"><div class="save" id="save"><i class="dot"></i><span>'+esc(saveLabel())+'</span></div><div class="who"><span class="num" dir="ltr">'+esc(authUser&&authUser.email||'')+'</span><button data-logout>خروج</button></div></div></header>';
 }
 function nav(){
-  var items=[['home','الرئيسية',I.home],['monthly','التحصيل',I.cal],['tenants','المستأجرين',I.shop],['expenses','المصاريف',I.receipt],['partners','الشركاء',I.people],['setup','الإعدادات',I.gear]];
+  var items=[['home','الرئيسية',I.home],['monthly','الدخل',I.cal],['expenses','الخرج',I.receipt],['setup','الإعدادات',I.gear]];
   if(isAdmin()){var pc=users.filter(function(u){return u.status==='pending';}).length;items.push(['users','المستخدمين'+(pc?' ('+pc+')':''),I.shield]);}
   return '<nav class="nav" aria-label="الأقسام">'+items.map(function(x){
     return '<button data-go="'+x[0]+'"'+(view===x[0]?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span></button>';
@@ -615,7 +615,7 @@ function vMonthly(){
   h+='<div class="card"><div class="card-head"><span class="tile t-sky">'+I.shop+'</span><div class="grow"><h2>الإيجارات</h2><p>اختر تاريخ الدفع، بعدين أشّر على اللي دفع</p></div>'+
     '<button class="btn ghost small" data-allpaid>'+I.check+' الكل دفع</button></div>'+
     '<div class="field stamp"><label for="stamp-date">تاريخ التسجيل</label><input class="input num" type="date" id="stamp-date" value="'+stampKey()+'" min="'+dkey(sel,1)+'" max="'+dkey(sel,daysIn(sel))+'"><small class="hj num" id="stamp-hj">'+(hijri(stampKey())?'يوافق '+hijri(stampKey())+'هـ':'')+'</small></div><div class="list">';
-  if(!S.tenants.length)h+='<div class="empty">ما فيه مستأجرين. أضفهم من صفحة المستأجرين.</div>';
+  if(!S.tenants.length)h+='<div class="empty">ما فيه مستأجرين.</div>';
   S.tenants.forEach(function(t){
     var on=!!(m.paid||{})[t.id], pdk=(m.paid||{})[t.id];
     h+='<div class="row"><div class="av">'+esc(initials(t.name))+'</div><div class="info"><b>'+esc(t.name)+'</b><small class="num">'+fmt(rent(t))+' ريال'+(typeof pdk==='string'?' · دفع '+dayLabel(pdk):'')+'</small></div>'+
@@ -778,6 +778,7 @@ function render(){
   if(adminUnverified()){root.innerHTML=vVerify();return;}
   if(!approved()){root.innerHTML=profile?vWait():vLoading();return;}
   if(view==='users'&&!isAdmin())view='home';
+  if(view==='tenants'||view==='partners')view='home';
   if(!loaded){root.innerHTML=header()+vLoading('جاري تحميل البيانات…');refreshStatus();return;}
   var body={home:vHome,monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:vSetup,users:vUsers}[view]();
   if(view==='home')body=vImport()+body;
@@ -833,9 +834,9 @@ var CARD_DEF={
   total:{t:'إجمالي الإيجار السنوي من كل المستأجرين',amount:'override',auto:'يتحسب من إيجارات المستأجرين. اكتب مبلغ إذا تبي تحطه بيدك، أو خلّه فاضي عشان يتحسب لحاله.'},
   owner:{t:null,amount:'owner'},
   rest:{t:'الباقي للشركاء والتصليح',auto:'يتحسب لحاله: الإجمالي ناقص النصيب الثابت. غيّر المبلغين اللي فوقه عشان يتغير.'},
-  progress:{t:null,auto:'يمشي حسب الأشهر اللي أشّرت فيها إن النصيب انصرف في التحصيل.'},
-  col:{t:'المحصّل من المستأجرين',auto:'يتجمع من الدفعات اللي تأشّر عليها في التحصيل.',go:'monthly'},
-  rep:{t:'مصاريف التصليح',auto:'يتجمع من مصاريف التصليح اللي تكتبها في كل شهر في التحصيل.',go:'monthly'},
+  progress:{t:null,auto:'يمشي حسب الأشهر اللي أشّرت فيها إن النصيب انصرف في صفحة الدخل.'},
+  col:{t:'المحصّل من المستأجرين',auto:'يتجمع من الدفعات اللي تأشّر عليها في صفحة الدخل.',go:'monthly'},
+  rep:{t:'مصاريف التصليح',auto:'يتجمع من مصاريف التصليح اللي تكتبها في كل شهر في صفحة الدخل.',go:'monthly'},
   rem:{t:null,auto:'يتحسب لحاله: المحصّل ناقص النصيب الثابت والتصليح.'},
   ledger:{t:'رصيد المصاريف التشغيلية',auto:'يتحسب من جدول المصاريف التشغيلية.',go:'expenses'}
 };
@@ -857,7 +858,7 @@ function cardForm(k){
     if(c.auto)html+='<p class="hint">'+c.auto+'</p>';
   }
   html+='<div class="btns"><button class="btn" type="submit">'+I.check+' حفظ</button><button class="btn ghost" type="button" data-cancel>إلغاء</button></div>';
-  if(c.go)html+='<button class="btn ghost block" type="button" data-cancel data-goto="'+c.go+'">تعديل الأرقام في '+(c.go==='expenses'?'المصاريف':'التحصيل')+'</button>';
+  if(c.go)html+='<button class="btn ghost block" type="button" data-cancel data-goto="'+c.go+'">تعديل الأرقام في '+(c.go==='expenses'?'الخرج':'الدخل')+'</button>';
   dialog(html,function(){
     if(k==='owner'){S.settings.ownerName=val('c-name');var a=parseAmt(val('c-amt'));S.settings.ownerAnnual=a===''?0:a;}
     else{
