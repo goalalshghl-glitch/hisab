@@ -650,7 +650,21 @@ var selAcc=null, accTab='day', accMonth='', accYear='';
 try{selAcc=sessionStorage.getItem('selAcc');accTab=sessionStorage.getItem('accTab')||'day';accMonth=sessionStorage.getItem('accMonth')||'';accYear=sessionStorage.getItem('accYear')||'';}catch(e){}
 function rememberAcc(){try{sessionStorage.setItem('selAcc',selAcc||'');sessionStorage.setItem('accTab',accTab);sessionStorage.setItem('accMonth',accMonth);sessionStorage.setItem('accYear',accYear);}catch(e){}}
 function realToday(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-function accEntries(id){return S.entries.filter(function(e){return e.acc===id;});}
+function normName(x){return String(x||'').replace(/[ًٌٍَُِّْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim().toLowerCase();}
+function ledgerAccount(note){
+  var n=normName(note);if(!n)return null;var best=null;
+  S.accounts.forEach(function(a){var an=normName(a.name);if(!an)return;if(n===an||(an.length>=3&&n.indexOf(an)>=0)){if(!best||an.length>normName(best.name).length)best=a;}});
+  return best;
+}
+function ledgerLinked(id){
+  var out=[];
+  S.ledger.forEach(function(r){var a=ledgerAccount(r.note);if(!a||a.id!==id)return;
+    var amt=a.kind==='in'?(+r.in||0)-(+r.out||0):(+r.out||0)-(+r.in||0);
+    if(!amt&&!(+r.in)&&!(+r.out))return;
+    out.push({id:'L'+r.id,acc:id,date:r.date,amount:amt,note:r.note,t:+r.t||0,src:'ledger'});});
+  return out;
+}
+function accEntries(id){return S.entries.filter(function(e){return e.acc===id;}).concat(ledgerLinked(id));}
 function sumWhere(list,fn){return list.reduce(function(a,e){return a+(fn(e)?(+e.amount||0):0);},0);}
 function accStats(id){
   var L=accEntries(id),t=realToday();
@@ -699,7 +713,8 @@ function vAccount(){
       h+='<div class="dgroup"><div class="dg-head"><div class="dg-date"><b class="num">'+slash(k)+'م</b><small class="num">'+(hijri(k)?hijri(k)+'هـ':'')+'</small></div><span>'+wday(k)+'</span><em class="num"><i class="'+cls+'">'+fmt(tot)+'</i></em></div><div class="list">';
       ds[k].forEach(function(e){
         h+='<div class="row"><div class="info"><b class="num '+cls+'">'+fmt(e.amount)+' <span style="font-weight:500;color:var(--muted);font-size:12px">ريال</span></b>'+(e.note?'<small>'+esc(e.note)+'</small>':'')+'</div>'+
-          '<div class="actions"><button class="icon-btn" data-edit-ent="'+esc(e.id)+'" aria-label="تعديل">'+I.edit+'</button><button class="icon-btn del" data-del-ent="'+esc(e.id)+'" aria-label="حذف">'+I.trash+'</button></div></div>';
+          (e.src==='ledger'?'<div class="actions"><span class="tag">من جدول الخرج</span><button class="icon-btn" data-acc-back="expenses" aria-label="تعديل في جدول الخرج">'+I.receipt+'</button></div></div>':
+          '<div class="actions"><button class="icon-btn" data-edit-ent="'+esc(e.id)+'" aria-label="تعديل">'+I.edit+'</button><button class="icon-btn del" data-del-ent="'+esc(e.id)+'" aria-label="حذف">'+I.trash+'</button></div></div>');
       });
       h+='</div></div>';
     });
@@ -791,14 +806,16 @@ function vExpensesBase(){
     var b=L.run[r.id];
     h+='<tr><td class="n">'+(i+1)+'</td>'+
       '<td class="c-date"><input type="date" id="l-'+r.id+'-date" data-l="'+r.id+'" data-f="date" value="'+esc(r.date)+'" aria-label="التاريخ، سطر '+(i+1)+'"><small class="hj num" data-hj="'+r.id+'">'+(hijri(r.date)?hijri(r.date)+'هـ':'')+'</small></td>'+
-      '<td><input id="l-'+r.id+'-note" data-l="'+r.id+'" data-f="note" value="'+esc(r.note)+'" placeholder="مثلاً: فاتورة كهرباء" aria-label="الملحوظة، سطر '+(i+1)+'"></td>'+
+      '<td><input id="l-'+r.id+'-note" data-l="'+r.id+'" data-f="note" list="acc-names" value="'+esc(r.note)+'" placeholder="اكتب اسم المحل أو البند" aria-label="الملحوظة، سطر '+(i+1)+'"></td>'+
       '<td class="c-in"><input class="amt" inputmode="decimal" autocomplete="off" id="l-'+r.id+'-in" data-l="'+r.id+'" data-f="in" value="'+esc(amt(r.in))+'" aria-label="مستلم، سطر '+(i+1)+'"></td>'+
       '<td class="c-out"><input class="amt" inputmode="decimal" autocomplete="off" id="l-'+r.id+'-out" data-l="'+r.id+'" data-f="out" value="'+esc(amt(r.out))+'" aria-label="مدفوع، سطر '+(i+1)+'"></td>'+
       '<td class="bal'+(b<0?' neg':'')+'" data-bal="'+r.id+'">'+(rowEmpty(r)?'':fmt(b))+'</td>'+
       '<td class="x"><button data-del-l="'+r.id+'" aria-label="حذف سطر '+(i+1)+'">'+I.trash+'</button></td></tr>';
   });
   h+='</tbody><tfoot><tr><td class="n"></td><td class="lbl" colspan="2">المجموع</td><td class="pos" data-lt="in2">'+fmt(L.tin)+'</td><td class="neg" data-lt="out2">'+fmt(L.tout)+'</td><td class="'+(L.bal<0?'neg':'')+'" data-lt="bal2">'+fmt(L.bal)+'</td><td></td></tr></tfoot></table></div>'+
-    '<div class="sheet-actions"><button class="btn" data-add-l>'+I.plus+' سطر جديد</button></div></div>';
+    '<div class="sheet-actions"><button class="btn" data-add-l>'+I.plus+' سطر جديد</button></div>'+
+    '<p class="hint" style="margin-top:10px">إذا كتبت في الملحوظة اسم محل أو بند من قوائمك، السطر يطلع في صفحته لحاله.</p>'+
+    '<datalist id="acc-names">'+S.accounts.map(function(a){return '<option value="'+esc(a.name)+'"></option>';}).join('')+'</datalist></div>';
   return h;
 }
 function refreshLedger(){
@@ -1056,7 +1073,7 @@ document.addEventListener('click',function(ev){
     if(z.addAcc){accForm(z.addAcc,null);return;}
     var A=S.accounts.find(function(a){return a.id===(z.editAcc||z.delAcc||z.addEnt);});
     if(z.editAcc&&A){accForm(A.kind,A);return;}
-    if(z.delAcc&&A){var n=accEntries(A.id).length;confirmBox('حذف «'+esc(A.name)+'»'+(n?' مع '+n+' '+accWords(A.kind).entry+' مسجلة فيه':'')+'؟','حذف',function(){S.entries=S.entries.filter(function(e){return e.acc!==A.id;});S.accounts=S.accounts.filter(function(a){return a.id!==A.id;});view=accWords(A.kind).go;commit();});return;}
+    if(z.delAcc&&A){var n=S.entries.filter(function(e){return e.acc===A.id;}).length;confirmBox('حذف «'+esc(A.name)+'»'+(n?' مع '+n+' '+accWords(A.kind).entry+' مسجلة فيه':'')+'؟','حذف',function(){S.entries=S.entries.filter(function(e){return e.acc!==A.id;});S.accounts=S.accounts.filter(function(a){return a.id!==A.id;});view=accWords(A.kind).go;commit();});return;}
     if(z.addEnt&&A){entForm(A,null);return;}
     var E=S.entries.find(function(e){return e.id===(z.editEnt||z.delEnt);});
     if(E){var EA=S.accounts.find(function(a){return a.id===E.acc;});
