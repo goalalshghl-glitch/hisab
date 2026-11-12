@@ -332,7 +332,9 @@ function totals(){
     if(S.months[m].ownerPaid){t.owner+=ownerMonthly();t.paidMonths++;}
     if(isActive(m)){t.active++;t.rem+=remaining(m);}
   }
-  t.xin=entriesYear('in');t.xout=entriesYear('out');t.rem+=t.xin-t.xout;
+  t.xin=entriesYear('in');t.xout=entriesYear('out');
+  var Y=String(yr());S.ledger.forEach(function(r){if(String(r.date).slice(0,4)===Y){t.xin+=+r.in||0;t.xout+=+r.out||0;}});
+  t.rem+=t.xin-t.xout;
   return t;
 }
 function ownerRaw(){var n=String(S.settings.ownerName||'').trim();return n||'المالك';}
@@ -814,7 +816,7 @@ function vExpensesBase(){
   });
   h+='</tbody><tfoot><tr><td class="n"></td><td class="lbl" colspan="2">المجموع</td><td class="pos" data-lt="in2">'+fmt(L.tin)+'</td><td class="neg" data-lt="out2">'+fmt(L.tout)+'</td><td class="'+(L.bal<0?'neg':'')+'" data-lt="bal2">'+fmt(L.bal)+'</td><td></td></tr></tfoot></table></div>'+
     '<div class="sheet-actions"><button class="btn" data-add-l>'+I.plus+' سطر جديد</button></div>'+
-    '<p class="hint" style="margin-top:10px">إذا كتبت في الملحوظة اسم محل أو بند من قوائمك، السطر يطلع في صفحته لحاله.</p>'+
+    '<p class="hint" style="margin-top:10px">إذا كتبت في الملحوظة اسم محل أو بند من قوائمك، السطر يطلع في صفحته لحاله. والمستلم ينضاف للباقي للشركاء، والمدفوع ينخصم منه.</p>'+
     '<datalist id="acc-names">'+S.accounts.map(function(a){return '<option value="'+esc(a.name)+'"></option>';}).join('')+'</datalist></div>';
   return h;
 }
