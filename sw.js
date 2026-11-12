@@ -1,5 +1,5 @@
 // Offline support: keeps the app files and Firebase libraries on the phone.
-const CACHE = 'hisab-v1';
+const CACHE = 'hisab-v2';
 const SHELL = ['./', './index.html', './fb.js', './firebase-config.js', './manifest.webmanifest',
   './icon-180.png', './icon-192.png', './icon-512.png'];
 const LIBS = ['app', 'auth', 'firestore'].map(n => `https://www.gstatic.com/firebasejs/10.12.2/firebase-${n}.js`);
@@ -30,7 +30,7 @@ self.addEventListener('fetch', e => {
 
   // Pages: try the network first so updates arrive, fall back to the saved copy offline.
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => {
+    e.respondWith(fetch(req.url, { cache: 'no-store', credentials: 'same-origin' }).then(r => {
       const copy = r.clone();
       caches.open(CACHE).then(c => c.put('./index.html', copy));
       return r;
