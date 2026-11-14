@@ -1017,13 +1017,13 @@ function refreshJournal(){
 }
 /* journal rows that match a supplier / obligation by name */
 var selLink=null;try{selLink=sessionStorage.getItem('selLink')||null;}catch(e){}
-function skel(x){return normName(x).replace(/[اويىهء\s]/g,'');}
+function skel(x){return ' '+normName(x).replace(/[اويىهء]/g,'').replace(/\s+/g,' ').trim()+' ';}
 function linkNames(a){var out=[];[a.name].concat(String(a.alias||'').split(/[,،\n]/)).forEach(function(x){x=x.trim();if(!x)return;out.push(x);
     var inP=x.match(/\(([^)]*)\)/g);if(inP){out.push(x.replace(/\([^)]*\)/g,' ').trim());inP.forEach(function(q){out.push(q.slice(1,-1).trim());});}
     var noAl=x.replace(/(^|\s)ال(?=\S{3,})/g,'$1').trim();if(noAl!==x)out.push(noAl);});
   return out.filter(function(x,i){return x&&out.indexOf(x)===i;});}
 function noteMatches(note,a){var nn=normName(note),ns=skel(note);if(!nn)return false;
-  return linkNames(a).some(function(x){var k=normName(x),sk=skel(x);return (k.length>=2&&nn.indexOf(k)>=0)||(sk.length>=3&&ns.indexOf(sk)>=0);});}
+  return linkNames(a).some(function(x){var k=normName(x),sk=skel(x);return (k.length>=2&&nn.indexOf(k)>=0)||(sk.replace(/ /g,'').length>=3&&ns.indexOf(sk.replace(/ $/,''))>=0);});}
 function linkRows(a){return jSorted().filter(function(r){return (+r.in||+r.out)&&noteMatches(r.note,a);});}
 function linkBtn(a){var n=linkRows(a).length;return '<button class="btn ghost small link-btn" data-links="'+esc(a.id)+'">'+I.cal+' اليومية'+(n?' <span class="cnt num">'+n+'</span>':'')+'</button>';}
 function vLinks(){
