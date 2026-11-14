@@ -233,6 +233,12 @@ label.btn{cursor:pointer}
 .hub .chev{font-size:22px;color:var(--muted)}
 .jm-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:4px 0 12px}
 .jm-nav .input{text-align:center}
+.sup-row{flex-wrap:wrap;padding:0;gap:0}
+.sup-main{display:flex;align-items:center;gap:12px;flex:1 1 100%;padding:12px;border:0;background:none;font:inherit;color:inherit;text-align:start;cursor:pointer;border-radius:16px}
+.sup-main:hover{background:#f3faf7}
+.row-foot{flex-basis:100%;display:flex;justify-content:flex-end;padding:0 12px 10px}
+.link-btn .cnt{display:inline-block;min-width:20px;padding:0 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent-deep);font-size:12px;margin-inline-start:4px}
+.link-btn svg{width:16px;height:16px}
 .sumbox{border:1px solid #dbe7e3;border-radius:16px;overflow:hidden;background:#fbfdfc}
 .sumbox-h{background:var(--accent-deep);color:#fff;font-weight:800;padding:8px 14px;font-size:15px}
 .sumbox table{width:100%;border-collapse:collapse;font-size:14px}
@@ -357,7 +363,7 @@ label.btn{cursor:pointer}
 var SEED = JSON.parse(document.getElementById('seed').textContent);
 var S = null;
 var MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-var VIEWS = ['home','monthly','tenants','expenses','partners','setup','users','account','summary','journal','suppliers','supplier','obligations'];
+var VIEWS = ['home','monthly','tenants','expenses','partners','setup','users','account','summary','journal','suppliers','supplier','obligations','links'];
 var view = VIEWS.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : null;
 if(!view){try{var sv=sessionStorage.getItem('view');view=VIEWS.indexOf(sv)>=0?sv:'home';}catch(e){view='home';}}
 function rememberView(){try{sessionStorage.setItem('view',view);}catch(e){}}
@@ -1009,6 +1015,30 @@ function refreshJournal(){
   var o=jSums(),X=[['in2',J.tin],['out2',J.tout],['bal2',J.bal]];['d','m','y'].forEach(function(k){X.push([k+'-in',o[k][0]],[k+'-out',o[k][1]],[k+'-bal',o[k][0]-o[k][1]]);});
   X.forEach(function(x){var el=document.querySelector('[data-jt="'+x[0]+'"]');if(el){el.textContent=fmt(x[1]);if(x[0].indexOf('bal')>=0)el.classList.toggle('neg',x[1]<0);}});
 }
+/* journal rows that match a supplier / obligation by name */
+var selLink=null;try{selLink=sessionStorage.getItem('selLink')||null;}catch(e){}
+function skel(x){return normName(x).replace(/[اويىهء\s]/g,'');}
+function linkNames(a){return [a.name].concat(String(a.alias||'').split(/[,،\n]/)).map(function(x){return x.trim();}).filter(Boolean);}
+function noteMatches(note,a){var nn=normName(note),ns=skel(note);if(!nn)return false;
+  return linkNames(a).some(function(x){var k=normName(x),sk=skel(x);return (k.length>=2&&nn.indexOf(k)>=0)||(sk.length>=3&&ns.indexOf(sk)>=0);});}
+function linkRows(a){return jSorted().filter(function(r){return (+r.in||+r.out)&&noteMatches(r.note,a);});}
+function linkBtn(a){var n=linkRows(a).length;return '<button class="btn ghost small link-btn" data-links="'+esc(a.id)+'">'+I.cal+' اليومية'+(n?' <span class="cnt num">'+n+'</span>':'')+'</button>';}
+function vLinks(){
+  var a=S.accounts.find(function(x){return x.id===selLink;});if(!a){view='home';return '';}
+  var L=linkRows(a),tin=0,tout=0,back=a.kind==='sup'?'suppliers':'obligations';
+  L.forEach(function(r){tin+=+r.in||0;tout+=+r.out||0;});
+  var h='<div class="card"><button class="linkbtn back" data-go="'+back+'">→ رجوع لل'+(a.kind==='sup'?'موردين':'التزامات')+'</button>'+
+    '<div class="card-head"><span class="tile t-mint">'+I.cal+'</span><div class="grow"><h2>'+esc(a.name)+' في اليومية</h2><p>'+(L.length?L.length+' سطر في اليومية فيه «'+esc(linkNames(a).join('» أو «'))+'»':'ما لقيت ولا سطر في اليومية فيه «'+esc(a.name)+'»')+'</p></div></div>'+
+    '<div class="mini" style="grid-template-columns:repeat(3,1fr)"><div><small>مستلم</small><b class="num pos">'+fmt(tin)+'</b></div><div><small>مدفوع</small><b class="num neg">'+fmt(tout)+'</b></div><div><small>الصافي</small><b class="num '+(tin-tout<0?'neg':'')+'">'+fmt(tin-tout)+'</b></div></div></div>';
+  h+='<div class="card"><div class="sheet"><table class="xl ro"><thead><tr><th class="c-date">التاريخ</th><th>الملحوظة</th><th class="c-amt">مستلم</th><th class="c-amt">مدفوع</th></tr></thead><tbody>';
+  if(!L.length)h+='<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--muted)">جرّب تضيف اسم ثاني من «تعديل»، مثل طريقة كتابته في اليومية.</td></tr>';
+  L.forEach(function(r){h+='<tr><td class="t num"><button class="linkbtn" data-jgo="'+esc(r.date)+'" data-jm-of="'+esc(jRowMonth(r))+'">'+slash(r.date)+'</button>'+(hijri(r.date)?'<small class="hj">'+hijri(r.date)+'هـ</small>':'')+'</td><td class="t">'+esc(r.note)+'</td><td class="t num pos">'+(+r.in?fmt(r.in):'')+'</td><td class="t num neg">'+(+r.out?fmt(r.out):'')+'</td></tr>';});
+  h+='</tbody><tfoot><tr><td class="lbl" colspan="2">المجموع</td><td class="pos">'+fmt(tin)+'</td><td class="neg">'+fmt(tout)+'</td></tr></tfoot></table></div>'+
+    '<p class="hint" style="margin-top:10px">اضغط على التاريخ يفتح لك اليومية على ذاك اليوم.</p></div>';
+  return h;
+}
+function unmatchedNotes(){var list=S.accounts.filter(function(a){return a.kind==='sup'||a.kind==='obl';});
+  return S.ledger.filter(function(r){return r.note&&(+r.in||+r.out)&&!list.some(function(a){return noteMatches(r.note,a);});});}
 /* suppliers */
 function supList(){return S.accounts.filter(function(a){return a.kind==='sup';});}
 function supTx(id){return S.entries.filter(function(e){return e.acc===id;}).slice().sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:(+x.t||0)-(+y.t||0);});}
@@ -1021,7 +1051,7 @@ function vSuppliers(){
   h+='<div class="card"><div class="list">';
   if(!list.length)h+='<div class="empty">ما فيه موردين للحين.</div>';
   list.forEach(function(a){var s=supStats(a.id);
-    h+='<button class="row acc-row" data-sup="'+esc(a.id)+'"><div class="av">'+esc(initials(a.name))+'</div><div class="info"><b>'+esc(a.name)+'</b><small class="num">فواتير '+fmt(s.bill)+' · مدفوع '+fmt(s.pay)+(a.phone?' · '+esc(a.phone):'')+'</small></div><div class="amt num '+(s.due>0?'neg':'pos')+'">'+fmt(s.due)+'<small>الباقي عليك</small></div><span class="chev" aria-hidden="true">‹</span></button>';
+    h+='<div class="row sup-row"><button class="sup-main" data-sup="'+esc(a.id)+'"><div class="av">'+esc(initials(a.name))+'</div><div class="info"><b>'+esc(a.name)+'</b><small class="num">فواتير '+fmt(s.bill)+' · مدفوع '+fmt(s.pay)+(a.phone?' · '+esc(a.phone):'')+'</small></div><div class="amt num '+(s.due>0?'neg':'pos')+'">'+fmt(s.due)+'<small>الباقي عليك</small></div><span class="chev" aria-hidden="true">‹</span></button><div class="row-foot">'+linkBtn(a)+'</div></div>';
   });
   h+='</div></div><button class="btn block" data-add-sup>'+I.plus+' إضافة مورد</button>';
   return h;
@@ -1033,7 +1063,7 @@ function vSupplier(){
     '<div class="card-head"><span class="tile t-sand">'+I.building+'</span><div class="grow"><h2>'+esc(a.name)+'</h2><p>'+(a.phone?'<span class="num" dir="ltr">'+esc(a.phone)+'</span> · ':'')+s.n+' حركة</p></div>'+
     '<div class="actions"><button class="icon-btn" data-edit-sup="'+esc(a.id)+'" aria-label="تعديل المورد">'+I.edit+'</button><button class="icon-btn del" data-del-sup="'+esc(a.id)+'" aria-label="حذف المورد">'+I.trash+'</button></div></div>'+
     '<div class="mini" style="grid-template-columns:repeat(3,1fr)"><div><small>الفواتير</small><b class="num">'+fmt(s.bill)+'</b></div><div><small>المدفوع</small><b class="num pos">'+fmt(s.pay)+'</b></div><div><small>الباقي عليك</small><b class="num '+(s.due>0?'neg':'')+'">'+fmt(s.due)+'</b></div></div>'+
-    '<div class="btn-row"><button class="btn" data-add-tx="bill">'+I.plus+' فاتورة جديدة</button><button class="btn ghost" data-add-tx="pay">'+I.check+' دفعة للمورد</button></div></div>';
+    '<div class="btn-row"><button class="btn" data-add-tx="bill">'+I.plus+' فاتورة جديدة</button><button class="btn ghost" data-add-tx="pay">'+I.check+' دفعة للمورد</button></div><div class="row-foot" style="border:0;padding-top:10px">'+linkBtn(a)+'</div></div>';
   h+='<div class="card"><div class="sheet"><table class="xl ro"><thead><tr><th class="c-date">التاريخ</th><th>البيان</th><th class="c-amt">فاتورة</th><th class="c-amt">مدفوع</th><th class="c-amt">الباقي</th><th class="x2"></th></tr></thead><tbody>';
   if(!L.length)h+='<tr><td colspan="6" style="padding:14px;text-align:center;color:var(--muted)">ما فيه فواتير أو دفعات للحين.</td></tr>';
   L.forEach(function(e){var v=+e.amount||0,isPay=e.typ==='pay';run+=isPay?-v:v;
@@ -1049,9 +1079,10 @@ function supForm(a){
   dialog('<h3>'+(isNew?'إضافة مورد':'تعديل المورد')+'</h3>'+
     '<div class="field"><label for="f-name">اسم المورد</label><input class="input" id="f-name" value="'+esc(a?a.name:'')+'" placeholder="مثلاً: مؤسسة الديزل"></div>'+
     '<div class="field"><label for="f-phone">الجوال (اختياري)</label><input class="input num" id="f-phone" inputmode="tel" dir="ltr" value="'+esc(a&&a.phone||'')+'"></div>'+
+    '<div class="field"><label for="f-alias">أسماء ثانية في اليومية (اختياري)</label><input class="input" id="f-alias" value="'+esc(a&&a.alias||'')+'" placeholder="مثلاً: برست، بروست المعلم"><small class="hint">افصل بينها بفاصلة. أي سطر في اليومية فيه الاسم أو هذي الأسماء يطلع عند المورد.</small></div>'+
     '<div class="btns"><button class="btn" type="submit">'+I.check+' حفظ</button><button class="btn ghost" type="button" data-cancel>إلغاء</button></div>',
   function(){var n=val('f-name');if(!n){document.getElementById('f-name').focus();return false;}
-    if(isNew){var id=uid('s');S.accounts.push({id:id,kind:'sup',name:n,phone:val('f-phone'),t:Date.now()});}else{a.name=n;a.phone=val('f-phone');}commit();});
+    if(isNew){var id=uid('s');S.accounts.push({id:id,kind:'sup',name:n,phone:val('f-phone'),alias:val('f-alias'),t:Date.now()});}else{a.name=n;a.phone=val('f-phone');a.alias=val('f-alias');}commit();});
 }
 function txForm(a,e,typ){
   var isNew=!e;e=e||{date:realToday(),amount:'',note:'',typ:typ};typ=e.typ==='pay'?'pay':'bill';
@@ -1086,7 +1117,7 @@ function vObligations(){
       '<small class="num">'+(o.done?'':'يستحق '+slash(o.due)+' · ')+REP[o.rep||'once']+' · '+oblWhen(o)+'</small>'+(o.note?'<small>'+esc(o.note)+'</small>':'')+'</div>'+
       '<div class="amt num">'+fmt(o.amount)+'<small>ريال</small></div>'+
       '<div class="actions">'+(o.done?'<button class="btn ghost small" data-undo-obl="'+esc(o.id)+'">تراجع</button>':'<button class="btn small" data-pay-obl="'+esc(o.id)+'">'+I.check+' تم الدفع</button>')+
-      '<button class="icon-btn" data-edit-obl="'+esc(o.id)+'" aria-label="تعديل">'+I.edit+'</button><button class="icon-btn del" data-del-obl="'+esc(o.id)+'" aria-label="حذف">'+I.trash+'</button></div></div>';
+      linkBtn(o)+'<button class="icon-btn" data-edit-obl="'+esc(o.id)+'" aria-label="تعديل">'+I.edit+'</button><button class="icon-btn del" data-del-obl="'+esc(o.id)+'" aria-label="حذف">'+I.trash+'</button></div></div>';
   });
   h+='</div></div><button class="btn block" data-add-obl>'+I.plus+' إضافة التزام</button>';
   var ids={};oblList().forEach(function(o){ids[o.id]=o;});
@@ -1104,9 +1135,10 @@ function oblForm(o){
     '<div class="field"><label for="f-date">تاريخ الاستحقاق'+(isNew?'':' (الجاي)')+'</label><input class="input num" type="date" id="f-date" value="'+esc(o.due)+'"></div>'+
     '<div class="field"><label for="f-rep">يتكرر</label><select class="input" id="f-rep">'+Object.keys(REP).map(function(k){return '<option value="'+k+'"'+((o.rep||'once')===k?' selected':'')+'>'+REP[k]+'</option>';}).join('')+'</select></div>'+
     '<div class="field"><label for="f-note">ملاحظة (اختياري)</label><input class="input" id="f-note" value="'+esc(o.note||'')+'"></div>'+
+    '<div class="field"><label for="f-alias">أسماء ثانية في اليومية (اختياري)</label><input class="input" id="f-alias" value="'+esc(o.alias||'')+'" placeholder="مثلاً: فاتورة الكهرباء، كهربا"><small class="hint">افصل بينها بفاصلة.</small></div>'+
     '<div class="btns"><button class="btn" type="submit">'+I.check+' حفظ</button><button class="btn ghost" type="button" data-cancel>إلغاء</button></div>',
   function(){var n=val('f-name'),v=parseAmt(val('f-amount'));if(!n){document.getElementById('f-name').focus();return false;}if(v===''){document.getElementById('f-amount').focus();return false;}
-    var obj={name:n,amount:v,due:val('f-date')||realToday(),rep:document.getElementById('f-rep').value,note:val('f-note')};
+    var obj={name:n,amount:v,due:val('f-date')||realToday(),rep:document.getElementById('f-rep').value,note:val('f-note'),alias:val('f-alias')};
     if(isNew){obj.id=uid('o');obj.kind='obl';obj.t=Date.now();S.accounts.push(obj);}else{Object.assign(o,obj);if(o.done&&daysTo(o.due)>=0&&obj.rep!=='once')o.done=false;}commit();});
 }
 function payObl(o){
@@ -1132,6 +1164,9 @@ function hubReport(v,R){
   if(v==='supplier'){var a=S.accounts.find(function(x){return x.id===selSup;});if(!a)return null;var s=supStats(a.id),run=0;R.title=a.name;R.sub='مورد';
     R.meta=[['الفواتير',n0(s.bill)],['المدفوع',n0(s.pay)],['الباقي عليك',n0(s.due)]];
     R.sections.push({title:'الحركات',cols:['التاريخ','البيان','فاتورة','مدفوع','الباقي'],rows:supTx(a.id).map(function(e){var x=+e.amount||0,p=e.typ==='pay';run+=p?-x:x;return [slash(e.date),e.note||(p?'دفعة':'فاتورة'),p?'':n0(x),p?n0(x):'',n0(run)];}),foot:['المجموع','',n0(s.bill),n0(s.pay),n0(s.due)]});return R;}
+  if(v==='links'){var la=S.accounts.find(function(x){return x.id===selLink;});if(!la)return null;var LL=linkRows(la),a1=0,b1=0;LL.forEach(function(r){a1+=+r.in||0;b1+=+r.out||0;});
+    R.title=la.name+' في اليومية';R.meta=[['مستلم',n0(a1)],['مدفوع',n0(b1)],['الصافي',n0(a1-b1)]];
+    R.sections.push({title:'السطور',cols:['التاريخ','الملحوظة','مستلم','مدفوع'],rows:LL.map(function(r){return [slash(r.date),r.note,+r.in?n0(r.in):'',+r.out?n0(r.out):''];}),foot:['المجموع','',n0(a1),n0(b1)]});return R;}
   if(v==='obligations'){R.title='الالتزامات';
     R.sections.push({title:'الالتزامات',cols:['الالتزام','المبلغ','الاستحقاق','التكرار','الحالة'],rows:oblSorted().map(function(o){return [o.name,n0(o.amount),o.done?'—':slash(o.due),REP[o.rep||'once'],oblWhen(o)];})});return R;}
   return null;
@@ -1141,7 +1176,7 @@ function exportBar(){return '<div class="export-bar"><button class="btn ghost sm
 function n0(v){return fmt(v);}
 function reportFor(v){
   var R={title:'',sub:'',meta:[],sections:[]};
-  if(['journal','suppliers','supplier','obligations'].indexOf(v)>=0)return hubReport(v,R);
+  if(['journal','suppliers','supplier','obligations','links'].indexOf(v)>=0)return hubReport(v,R);
   if(v==='home'){
     var t=totals(),annual=annualTotal(),owner=+S.settings.ownerAnnual||0,Lg=ledgerTotals();
     R.title='الملخص';R.sub='سنة '+yr();
@@ -1404,8 +1439,8 @@ function render(){
   if(view==='users')view='setup';
   if(view==='tenants'||view==='partners')view='home';
   if(!loaded){root.innerHTML=header()+vLoading('جاري تحميل البيانات…');refreshStatus();return;}
-  var body={home:function(){return '';},monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:function(){return vSetup()+(isAdmin()?vUsers():'');},users:vUsers,account:vAccount,summary:vSummary,journal:vJournal,suppliers:vSuppliers,supplier:vSupplier,obligations:vObligations}[view]();
-  if(['monthly','expenses','account','summary','journal','suppliers','supplier','obligations'].indexOf(view)>=0)body=exportBar()+body;
+  var body={home:function(){return '';},monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:function(){return vSetup()+(isAdmin()?vUsers():'');},users:vUsers,account:vAccount,summary:vSummary,journal:vJournal,suppliers:vSuppliers,supplier:vSupplier,obligations:vObligations,links:vLinks}[view]();
+  if(['monthly','expenses','account','summary','journal','suppliers','supplier','obligations','links'].indexOf(view)>=0)body=exportBar()+body;
   if(view==='home')body=cxSwitch()+hubTiles()+body;
   if(!isAdmin())body='<div class="note ro-note">'+I.info+'<div>أنت تشوف الحسابات <b>عرض فقط</b>. التعديل للمدير بس.</div></div>'+body;
   root.innerHTML=header()+nav()+body+
@@ -1544,8 +1579,8 @@ document.addEventListener('click',function(ev){
   if(xb&&!xb.closest('#modal')){var R=xb.dataset.receipt?receiptReport(xb.dataset.receipt):reportFor(view);if(!R)return;
     if(xb.dataset.receipt)exportDialog(R);else if(xb.dataset.export==='print')printReport(R);else if(xb.dataset.export==='pdf')sharePdf(R);else shareImage(R);return;}
   var cb=ev.target.closest('[data-cx]');if(cb&&!cb.closest('#modal')){switchComplex(cb.dataset.cx);return;}
-  var hn=ev.target.closest('[data-jm],[data-sup]');
-  if(hn&&!hn.closest('#modal')){var hd=hn.dataset;if(hd.jm){jMonth=dayShift(curJD(),+hd.jm);}else{selSup=hd.sup;view='supplier';window.scrollTo(0,0);}rememberHub();rememberView();render();return;}
+  var hn=ev.target.closest('[data-jm],[data-sup],[data-links],[data-jgo]');
+  if(hn&&!hn.closest('#modal')){var hd=hn.dataset;if(hd.jm){jMonth=dayShift(curJD(),+hd.jm);}else if(hd.links){selLink=hd.links;try{sessionStorage.setItem('selLink',selLink);}catch(e){}view='links';window.scrollTo(0,0);}else if(hd.jgo){var jd=hd.jgo;if(hd.jmOf&&jd.slice(0,7)!==hd.jmOf)jd=hd.jmOf+'-01';jMonth=jd;view='journal';window.scrollTo(0,0);}else{selSup=hd.sup;view='supplier';window.scrollTo(0,0);}rememberHub();rememberView();render();return;}
   if(!isAdmin()){var ec=ev.target.closest('button,[data-card]');if(ec&&!ec.closest('#modal')&&isEditCtl(ec))return;}
   var pn=ev.target.closest('[data-card]');if(pn&&!pn.closest('#modal')){cardForm(pn.dataset.card);return;}
   var hb=ev.target.closest('[data-add-sup],[data-edit-sup],[data-del-sup],[data-add-tx],[data-edit-tx],[data-del-tx],[data-add-obl],[data-edit-obl],[data-del-obl],[data-pay-obl],[data-undo-obl]');
