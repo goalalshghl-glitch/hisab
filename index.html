@@ -222,9 +222,9 @@ label.btn{cursor:pointer}
 .pay.ro-static:not(.on){opacity:.7}
 #root input:disabled,#root textarea:disabled{opacity:1;color:var(--ink);background:transparent;cursor:default}
 
-.cx-switch{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:16px;padding:5px;border-radius:16px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.18)}
-.cx-switch button{border:0;background:transparent;color:#e6fff5;border-radius:12px;padding:9px 4px;font-weight:800;font-size:13.5px;line-height:1.3}
-.cx-switch button.on{background:#fff;color:var(--accent-deep);box-shadow:0 4px 12px -6px rgba(0,0,0,.4)}
+.cx-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 14px;padding:6px;border-radius:18px;background:#fff;border:1px solid rgba(15,90,70,.12);box-shadow:0 6px 18px -12px rgba(15,60,50,.35)}
+.cx-switch button{border:0;background:transparent;color:var(--accent-deep);border-radius:13px;padding:11px 4px;font-weight:800;font-size:14px;line-height:1.3}
+.cx-switch button.on{background:var(--accent-deep);color:#fff;box-shadow:0 6px 14px -8px rgba(0,60,45,.6)}
 
 @media (max-width:480px){.prow{flex-wrap:wrap}.prow .info{flex:1 1 calc(100% - 60px)}.prow .amt{margin-inline-start:54px;flex:1;text-align:right}}
 
@@ -641,8 +641,10 @@ function header(){
     (function(){var t=today(),h=hijri(t);return '<p class="today num"><span class="nw">اليوم '+wday(t)+'</span> <span class="nw">'+t.replace(/-/g,'/')+'م</span>'+(h?' <span class="nw">· '+h+'هـ</span>':'')+'</p>';})()+
     '</div>'+
     '<div class="hero-badge">'+I.fuel+'<i>'+I.coin+'</i></div></div>'+
-    '<div class="cx-switch" role="tablist" aria-label="المجمعات">'+COMPLEXES.map(function(c){return '<button role="tab" data-cx="'+c.id+'" aria-selected="'+(c===cx)+'" class="'+(c===cx?'on':'')+'">'+esc(c.name.replace('مجمع ',''))+'</button>';}).join('')+'</div>'+
     '<div class="hero-foot"><div class="save" id="save"><i class="dot"></i><span>'+esc(saveLabel())+'</span></div><div class="who"><span class="num" dir="ltr">'+esc(authUser&&authUser.email||'')+'</span><button data-logout>خروج</button></div></div></header>';
+}
+function cxSwitch(){
+  return '<div class="cx-switch" role="tablist" aria-label="المجمعات">'+COMPLEXES.map(function(c){return '<button role="tab" data-cx="'+c.id+'" aria-selected="'+(c===cx)+'" class="'+(c===cx?'on':'')+'">'+esc(c.name.replace('مجمع ',''))+'</button>';}).join('')+'</div>';
 }
 function nav(){
   var pc=isAdmin()?users.filter(function(u){return u.status==='pending';}).length:0;
@@ -1177,6 +1179,7 @@ function render(){
   var body={home:vHome,monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:function(){return vSetup()+(isAdmin()?vUsers():'');},users:vUsers,account:vAccount,summary:vSummary}[view]();
   if(view==='home')body=vImport()+body;
   if(['home','monthly','expenses','account','summary'].indexOf(view)>=0)body=exportBar()+body;
+  if(view==='home')body=cxSwitch()+body;
   if(!isAdmin())body='<div class="note ro-note">'+I.info+'<div>أنت تشوف الحسابات <b>عرض فقط</b>. التعديل للمدير بس.</div></div>'+body;
   root.innerHTML=header()+nav()+body+
     '<p class="foot">'+I.shield+' تعديلاتك تنحفظ في جوالك على طول، وتتزامن مع الكل لما يكون فيه نت</p>';
