@@ -578,7 +578,7 @@ function startData(){
     unsubs.push(FB.watchCol(px(c),function(list,m){base[c]=list;mark(c,m);rebuild();refreshStatus();},dataErr));
   });
   unsubs.push(FB.watchCol(px('months'),function(list,m){var o={};list.forEach(function(d){o[d.id]=d.data;});base.months=o;mark('months',m);rebuild();refreshStatus();},dataErr));
-  if(isAdmin())unsubs.push(FB.watchCol('users',function(list){users=list.map(function(d){return Object.assign({uid:d.id},d.data);});if(view==='users'||view==='home')rebuild();},function(){}));
+  if(isAdmin())unsubs.push(FB.watchCol('users',function(list){users=list.map(function(d){return Object.assign({uid:d.id},d.data);});if(view==='setup'||view==='home')rebuild();},function(){}));
 }
 function stopAll(){unsubs.forEach(function(u){try{u();}catch(e){}});unsubs=[];dataStarted=false;loaded=false;got={};pend={};base={settings:null,tenants:[],partners:[],ledger:[],daily:[],months:{},accounts:[],entries:[]};users=[];profile=null;}
 var profUnsub=null;
@@ -645,10 +645,10 @@ function header(){
     '<div class="hero-foot"><div class="save" id="save"><i class="dot"></i><span>'+esc(saveLabel())+'</span></div><div class="who"><span class="num" dir="ltr">'+esc(authUser&&authUser.email||'')+'</span><button data-logout>خروج</button></div></div></header>';
 }
 function nav(){
-  var items=[['home','الرئيسية',I.home],['monthly','الدخل',I.cal],['expenses','الخرج',I.receipt],['setup','الإعدادات',I.gear]];
-  if(isAdmin()){var pc=users.filter(function(u){return u.status==='pending';}).length;items.push(['users','المستخدمين'+(pc?' ('+pc+')':''),I.shield]);}
+  var pc=isAdmin()?users.filter(function(u){return u.status==='pending';}).length:0;
+  var items=[['home','الرئيسية',I.home],['setup','الإعدادات'+(pc?' ('+pc+')':''),I.gear]];
   return '<nav class="nav" aria-label="الأقسام">'+items.map(function(x){
-    var cur=view==='account'?((S.accounts.find(function(a){return a.id===selAcc;})||{}).kind==='out'?'expenses':'monthly'):view==='summary'?(sumKind==='out'?'expenses':'monthly'):view;
+    var cur=(view==='setup'||view==='users')?'setup':'home';
     return '<button data-go="'+x[0]+'"'+(cur===x[0]?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span></button>';
   }).join('')+'</nav>';
 }
@@ -709,7 +709,7 @@ function accStats(id){
   return {day:sumWhere(L,function(e){return e.date===t;}),month:sumWhere(L,function(e){return String(e.date).slice(0,7)===t.slice(0,7);}),year:sumWhere(L,function(e){return String(e.date).slice(0,4)===t.slice(0,4);}),all:sumWhere(L,function(){return true;}),count:L.length};
 }
 function entriesYear(kind){var y=String(yr());var ids={};S.accounts.forEach(function(a){if(a.kind===kind)ids[a.id]=1;});return sumWhere(S.entries,function(e){return ids[e.acc]&&String(e.date).slice(0,4)===y;});}
-function accWords(kind){return kind==='in'?{list:'المحلات',one:'محل',add:'إضافة محل',entry:'دفعة',addEntry:'إضافة دفعة',page:'الدخل',go:'monthly',ph:'مثلاً: البروست'}:{list:'البنود',one:'بند',add:'إضافة بند',entry:'مبلغ',addEntry:'إضافة مبلغ',page:'الخرج',go:'expenses',ph:'مثلاً: رسوم حكومية'};}
+function accWords(kind){return kind==='in'?{list:'المحلات',one:'محل',add:'إضافة محل',entry:'دفعة',addEntry:'إضافة دفعة',page:'الرئيسية',go:'home',ph:'مثلاً: البروست'}:{list:'البنود',one:'بند',add:'إضافة بند',entry:'مبلغ',addEntry:'إضافة مبلغ',page:'الرئيسية',go:'home',ph:'مثلاً: رسوم حكومية'};}
 /* ---------- combined totals across all shops / items ---------- */
 var sumKind='in',sumTab='day',sumDay='',sumMonth='',sumYear='',accSearch={in:'',out:''};
 try{sumKind=sessionStorage.getItem('sumKind')||'in';sumTab=sessionStorage.getItem('sumTab')||'day';sumDay=sessionStorage.getItem('sumDay')||'';sumMonth=sessionStorage.getItem('sumMonth')||'';sumYear=sessionStorage.getItem('sumYear')||'';}catch(e){}
@@ -1171,10 +1171,10 @@ function render(){
   if(!authUser){root.innerHTML=vLogin();return;}
   if(adminUnverified()){root.innerHTML=vVerify();return;}
   if(!approved()){root.innerHTML=profile?vWait():vLoading();return;}
-  if(view==='users'&&!isAdmin())view='home';
+  if(view==='users')view='setup';
   if(view==='tenants'||view==='partners')view='home';
   if(!loaded){root.innerHTML=header()+vLoading('جاري تحميل البيانات…');refreshStatus();return;}
-  var body={home:vHome,monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:vSetup,users:vUsers,account:vAccount,summary:vSummary}[view]();
+  var body={home:vHome,monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:function(){return vSetup()+(isAdmin()?vUsers():'');},users:vUsers,account:vAccount,summary:vSummary}[view]();
   if(view==='home')body=vImport()+body;
   if(['home','monthly','expenses','account','summary'].indexOf(view)>=0)body=exportBar()+body;
   if(!isAdmin())body='<div class="note ro-note">'+I.info+'<div>أنت تشوف الحسابات <b>عرض فقط</b>. التعديل للمدير بس.</div></div>'+body;
