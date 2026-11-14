@@ -222,12 +222,6 @@ label.btn{cursor:pointer}
 .pay.ro-static:not(.on){opacity:.7}
 #root input:disabled,#root textarea:disabled{opacity:1;color:var(--ink);background:transparent;cursor:default}
 
-.dwrap{position:relative;display:block}
-.xl .dwrap{height:39px}
-.dwrap>input[type=date]{width:100%}
-.dwrap>input[type=date]::-webkit-datetime-edit{opacity:0}
-.dlabel{position:absolute;inset:0;display:flex;align-items:center;pointer-events:none;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
-.dlabel.empty{color:var(--muted)}
 .hubs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
 .hub{display:flex;align-items:center;gap:10px;text-align:start;border:1px solid #e3eeea;background:var(--surface);border-radius:18px;padding:14px 12px;box-shadow:0 8px 22px -18px rgba(16,60,50,.4);color:inherit;font:inherit;cursor:pointer}
 .hub.main{grid-column:1/-1;background:linear-gradient(135deg,#f3fbf8,#ffffff)}
@@ -1410,23 +1404,6 @@ function lockView(root){
   root.querySelectorAll('button,[data-card],label[for="restore-file"]').forEach(function(el){var d=el.dataset||{};if(d.pay!==undefined||d.owner!==undefined){el.disabled=true;el.classList.add('ro-static');}else if(isEditCtl(el)||el.tagName==='LABEL')el.classList.add('ro-hide');});
 }
 
-/* ---------- date fields: own label (Chrome shows Arabic placeholders reversed) ---------- */
-function dateText(v){return /^\d{4}-\d{2}-\d{2}$/.test(v)?slash(v):'اختر التاريخ';}
-function syncDate(inp){var l=inp.parentNode&&inp.parentNode.querySelector('.dlabel');if(!l)return;l.textContent=dateText(inp.value);l.classList.toggle('empty',!inp.value);}
-function enhanceDates(root){
-  (root||document).querySelectorAll('input[type=date]:not([data-dx])').forEach(function(inp){
-    inp.setAttribute('data-dx','1');
-    var w=document.createElement('span');w.className='dwrap';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
-    var cs=getComputedStyle(inp),l=document.createElement('span');l.className='dlabel';l.setAttribute('aria-hidden','true');l.dir='rtl';
-    l.style.paddingRight=(parseFloat(cs.paddingRight)+parseFloat(cs.borderRightWidth||0))+'px';l.style.paddingLeft='34px';
-    l.style.fontSize=cs.fontSize;l.style.fontWeight=cs.fontWeight;if(inp.style.textAlign==='center'||cs.textAlign==='center')l.style.justifyContent='center';
-    w.appendChild(l);syncDate(inp);
-    inp.addEventListener('input',function(){syncDate(inp);});
-    inp.addEventListener('change',function(){syncDate(inp);});
-    inp.addEventListener('click',function(ev){if(inp.disabled)return;try{inp.showPicker();ev.preventDefault();}catch(e){}});
-  });
-}
-new MutationObserver(function(){enhanceDates(document);}).observe(document.documentElement,{childList:true,subtree:true});
 /* ---------- dialogs ---------- */
 function dialog(html,onOk){
   var md=document.getElementById('modal');
