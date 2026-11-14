@@ -233,6 +233,7 @@ label.btn{cursor:pointer}
 .hub .chev{font-size:22px;color:var(--muted)}
 .jm-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:4px 0 12px}
 .jm-nav .input{text-align:center}
+.xl tr.sel-day td{background:#eef8f4}
 .xl tr.carry td{background:#f6faf9;color:var(--muted)}
 .xl td.t{padding:6px 10px;vertical-align:middle}
 .xl td.t .hj{display:block;font-size:11px;color:var(--muted)}
@@ -942,7 +943,9 @@ function refreshLedger(){
 var jMonth='', selSup=null;
 try{jMonth=sessionStorage.getItem('jMonth')||'';selSup=sessionStorage.getItem('selSup')||null;}catch(e){}
 function rememberHub(){try{sessionStorage.setItem('jMonth',jMonth);sessionStorage.setItem('selSup',selSup||'');}catch(e){}}
-function curJM(){return /^\d{4}-\d{2}$/.test(jMonth)?jMonth:realToday().slice(0,7);}
+function curJD(){return /^\d{4}-\d{2}-\d{2}$/.test(jMonth)?jMonth:realToday();}
+function curJM(){return curJD().slice(0,7);}
+function dayShift(k,n){var p=k.split('-').map(Number);var d=new Date(p[0],p[1]-1,p[2]+n);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function ymLabel(ym){var p=ym.split('-');return MONTHS[+p[1]-1]+' '+p[0];}
 function ymHijri(ym){var p=ym.split('-').map(Number);var a=hijriMonth(new Date(p[0],p[1]-1,1,12)),b=hijriMonth(new Date(p[0],p[1],0,12));if(!a)return '';return a===b?a+' هـ':a.replace(/\s*\d+$/,'')+' – '+b+' هـ';}
 function ymShift(ym,n){var p=ym.split('-').map(Number);var d=new Date(p[0],p[1]-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1);}
@@ -960,7 +963,8 @@ function backHome(){return '<button class="linkbtn back" data-go="home">→ رج
 function vJournal(){
   var ym=curJM(),J=journalCalc(ym),hj=ymHijri(ym);
   var h='<div class="card">'+backHome()+'<div class="card-head"><span class="tile t-mint">'+I.cal+'</span><div class="grow"><h2>يوميات شهر '+ymLabel(ym)+'</h2><p>'+(hj?'يوافق '+hj:'سجّل كل مبلغ استلمته أو دفعته')+'</p></div></div>'+
-    '<div class="jm-nav"><button class="btn ghost small jm-b" data-jm="-1" aria-label="الشهر السابق">→</button><input class="input num" type="month" id="j-month" value="'+ym+'" aria-label="اختر الشهر"><button class="btn ghost small jm-b" data-jm="1" aria-label="الشهر التالي">←</button></div>'+
+    '<div class="jm-nav"><button class="btn ghost small jm-b" data-jm="-1" aria-label="اليوم السابق">→</button><input class="input num" type="date" id="j-month" value="'+curJD()+'" aria-label="اختر اليوم"><button class="btn ghost small jm-b" data-jm="1" aria-label="اليوم التالي">←</button></div>'+
+    '<p class="hint num" style="text-align:center;margin:-4px 0 10px">'+wday(curJD())+' '+slash(curJD())+'م'+(hijri(curJD())?' · '+hijri(curJD())+'هـ':'')+'</p>'+
     '<div class="mini" style="grid-template-columns:repeat(3,1fr)">'+
       '<div><small>مستلم</small><b class="num pos" data-jt="in">'+fmt(J.tin)+'</b></div>'+
       '<div><small>مدفوع</small><b class="num neg" data-jt="out">'+fmt(J.tout)+'</b></div>'+
@@ -971,7 +975,7 @@ function vJournal(){
   if(!J.rows.length)h+='<tr><td class="n"></td><td colspan="6" style="padding:14px;text-align:center;color:var(--muted)">ما فيه شي مسجل في هالشهر. اضغط «سطر جديد» تحت.</td></tr>';
   J.rows.forEach(function(r,i){
     var b=J.run[r.id];
-    h+='<tr><td class="n">'+(i+1)+'</td>'+
+    h+='<tr'+(r.date===curJD()?' class="sel-day"':'')+'><td class="n">'+(i+1)+'</td>'+
       '<td class="c-date"><input type="date" id="l-'+r.id+'-date" data-l="'+r.id+'" data-f="date" value="'+esc(r.date)+'" aria-label="التاريخ، سطر '+(i+1)+'"><small class="hj num" data-hj="'+r.id+'">'+(hijri(r.date)?hijri(r.date)+'هـ':'')+'</small></td>'+
       '<td><input id="l-'+r.id+'-note" data-l="'+r.id+'" data-f="note" value="'+esc(r.note)+'" placeholder="اكتب الملحوظة" aria-label="الملحوظة، سطر '+(i+1)+'"></td>'+
       '<td class="c-in"><input class="amt" inputmode="decimal" autocomplete="off" id="l-'+r.id+'-in" data-l="'+r.id+'" data-f="in" value="'+esc(amt(r.in))+'" aria-label="مستلم، سطر '+(i+1)+'"></td>'+
@@ -1525,7 +1529,7 @@ document.addEventListener('click',function(ev){
     if(xb.dataset.receipt)exportDialog(R);else if(xb.dataset.export==='print')printReport(R);else if(xb.dataset.export==='pdf')sharePdf(R);else shareImage(R);return;}
   var cb=ev.target.closest('[data-cx]');if(cb&&!cb.closest('#modal')){switchComplex(cb.dataset.cx);return;}
   var hn=ev.target.closest('[data-jm],[data-sup]');
-  if(hn&&!hn.closest('#modal')){var hd=hn.dataset;if(hd.jm){jMonth=ymShift(curJM(),+hd.jm);}else{selSup=hd.sup;view='supplier';window.scrollTo(0,0);}rememberHub();rememberView();render();return;}
+  if(hn&&!hn.closest('#modal')){var hd=hn.dataset;if(hd.jm){jMonth=dayShift(curJD(),+hd.jm);}else{selSup=hd.sup;view='supplier';window.scrollTo(0,0);}rememberHub();rememberView();render();return;}
   if(!isAdmin()){var ec=ev.target.closest('button,[data-card]');if(ec&&!ec.closest('#modal')&&isEditCtl(ec))return;}
   var pn=ev.target.closest('[data-card]');if(pn&&!pn.closest('#modal')){cardForm(pn.dataset.card);return;}
   var hb=ev.target.closest('[data-add-sup],[data-edit-sup],[data-del-sup],[data-add-tx],[data-edit-tx],[data-del-tx],[data-add-obl],[data-edit-obl],[data-del-obl],[data-pay-obl],[data-undo-obl]');
@@ -1573,7 +1577,7 @@ document.addEventListener('click',function(ev){
   if(d.addT!==undefined){tenantForm(null);return;}
   if(d.editT){tenantForm(S.tenants.find(function(t){return t.id===d.editT;}));return;}
   if(d.delT){var t=S.tenants.find(function(x){return x.id===d.delT;});confirmBox('حذف '+esc(t.name)+'؟','حذف',function(){S.tenants=S.tenants.filter(function(x){return x.id!==d.delT;});S.months.forEach(function(m){if(m.paid)delete m.paid[d.delT];});commit();});return;}
-  if(d.addL!==undefined){var jm=curJM(),nd=view!=='journal'||jm===realToday().slice(0,7)?today():jm+'-01';S.ledger.push({id:uid('l'),t:Date.now(),date:nd,note:'',in:'',out:''});commit();var last=S.ledger[S.ledger.length-1];var inp=document.getElementById('l-'+last.id+'-note');if(inp)inp.focus();return;}
+  if(d.addL!==undefined){var nd=view==='journal'?curJD():today();S.ledger.push({id:uid('l'),t:Date.now(),date:nd,note:'',in:'',out:''});commit();var last=S.ledger[S.ledger.length-1];var inp=document.getElementById('l-'+last.id+'-note');if(inp)inp.focus();return;}
   if(d.delL){var lr=S.ledger.find(function(x){return x.id===d.delL;});var empty=!lr.note&&!(+lr.in)&&!(+lr.out);var go=function(){S.ledger=S.ledger.filter(function(x){return x.id!==d.delL;});commit();};if(empty)go();else confirmBox('حذف السطر'+(lr.note?' «'+esc(lr.note)+'»':'')+'؟','حذف',go);return;}
   if(d.addP!==undefined){partnerForm(null);return;}
   if(d.editP){partnerForm(S.partners.find(function(p){return p.id===d.editP;}));return;}
@@ -1592,7 +1596,7 @@ document.addEventListener('submit',function(ev){
 });
 document.addEventListener('change',function(ev){
   if(ev.target.id==='sum-day'){sumDay=ev.target.value;rememberSum();render();return;}
-  if(ev.target.id==='j-month'){if(/^\d{4}-\d{2}$/.test(ev.target.value)){jMonth=ev.target.value;rememberHub();render();}return;}
+  if(ev.target.id==='j-month'){if(/^\d{4}-\d{2}-\d{2}$/.test(ev.target.value)){jMonth=ev.target.value;rememberHub();render();}return;}
   if(ev.target.dataset&&ev.target.dataset.search)return;
   if(authUser&&approved()&&!isAdmin()&&ev.target.closest('#root')){render();return;}
   if(ev.target.id==='restore-file'){var f=ev.target.files&&ev.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var data=JSON.parse(rd.result);confirmBox('استرجاع النسخة؟ البيانات اللي في الملف بتنضاف وتحدّث الموجود.','استرجاع',function(){importData(data,false);});}catch(e){setSave('err','الملف مو نسخة احتياطية صحيحة');}};rd.readAsText(f);ev.target.value='';return;}
