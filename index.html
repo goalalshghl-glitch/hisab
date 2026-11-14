@@ -233,6 +233,14 @@ label.btn{cursor:pointer}
 .hub .chev{font-size:22px;color:var(--muted)}
 .jm-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:4px 0 12px}
 .jm-nav .input{text-align:center}
+.sumbox{border:1px solid #dbe7e3;border-radius:16px;overflow:hidden;background:#fbfdfc}
+.sumbox-h{background:var(--accent-deep);color:#fff;font-weight:800;padding:8px 14px;font-size:15px}
+.sumbox table{width:100%;border-collapse:collapse;font-size:14px}
+.sumbox th,.sumbox td{padding:9px 8px;border-top:1px solid #e6efec;text-align:center}
+.sumbox thead th{background:#eef6f3;color:var(--accent-deep);font-size:12.5px;border-top:0}
+.sumbox tbody th{text-align:start;font-weight:800;white-space:nowrap}
+.sumbox tbody th small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.sumbox td{font-weight:800;font-variant-numeric:tabular-nums}
 .xl tr.sel-day td{background:#eef8f4}
 .xl tr.carry td{background:#f6faf9;color:var(--muted)}
 .xl td.t{padding:6px 10px;vertical-align:middle}
@@ -949,15 +957,13 @@ function dayShift(k,n){var p=k.split('-').map(Number);var d=new Date(p[0],p[1]-1
 function ymLabel(ym){var p=ym.split('-');return MONTHS[+p[1]-1]+' '+p[0];}
 function ymHijri(ym){var p=ym.split('-').map(Number);var a=hijriMonth(new Date(p[0],p[1]-1,1,12)),b=hijriMonth(new Date(p[0],p[1],0,12));if(!a)return '';return a===b?a+' هـ':a.replace(/\s*\d+$/,'')+' – '+b+' هـ';}
 function ymShift(ym,n){var p=ym.split('-').map(Number);var d=new Date(p[0],p[1]-1+n,1);return d.getFullYear()+'-'+pad(d.getMonth()+1);}
-function jRowMonth(r){return (r.date||realToday()).slice(0,7);}
+function jRowMonth(r){return /^\d{4}-\d{2}$/.test(r.m||'')?r.m:(r.date||realToday()).slice(0,7);}
 function jSorted(){return S.ledger.map(function(r,i){return {r:r,i:i,k:r.date||realToday()};}).sort(function(a,b){return a.k<b.k?-1:a.k>b.k?1:a.i-b.i;}).map(function(o){return o.r;});}
 function journalCalc(ym){
-  var run=0,carry=0,tin=0,tout=0,rows=[],bal={};
-  jSorted().forEach(function(r){var a=+r.in||0,b=+r.out||0,m=jRowMonth(r);
-    if(m<ym){carry+=a-b;run+=a-b;return;}
-    if(m>ym)return;
+  var run=0,tin=0,tout=0,rows=[],bal={};
+  jSorted().forEach(function(r){if(jRowMonth(r)!==ym)return;var a=+r.in||0,b=+r.out||0;
     run+=a-b;bal[r.id]=run;tin+=a;tout+=b;rows.push(r);});
-  return {rows:rows,carry:carry,tin:tin,tout:tout,bal:carry+tin-tout,run:bal};
+  return {rows:rows,carry:0,tin:tin,tout:tout,bal:tin-tout,run:bal};
 }
 function backHome(){return '<button class="linkbtn back" data-go="home">→ رجوع للرئيسية</button>';}
 function vJournal(){
@@ -965,13 +971,8 @@ function vJournal(){
   var h='<div class="card">'+backHome()+'<div class="card-head"><span class="tile t-mint">'+I.cal+'</span><div class="grow"><h2>يوميات شهر '+ymLabel(ym)+'</h2><p>'+(hj?'يوافق '+hj:'سجّل كل مبلغ استلمته أو دفعته')+'</p></div></div>'+
     '<div class="jm-nav"><button class="btn ghost small jm-b" data-jm="-1" aria-label="اليوم السابق">→</button><input class="input num" type="date" id="j-month" value="'+curJD()+'" aria-label="اختر اليوم"><button class="btn ghost small jm-b" data-jm="1" aria-label="اليوم التالي">←</button></div>'+
     '<p class="hint num" style="text-align:center;margin:-4px 0 10px">'+wday(curJD())+' '+slash(curJD())+'م'+(hijri(curJD())?' · '+hijri(curJD())+'هـ':'')+'</p>'+
-    '<div class="mini" style="grid-template-columns:repeat(3,1fr)">'+
-      '<div><small>مستلم</small><b class="num pos" data-jt="in">'+fmt(J.tin)+'</b></div>'+
-      '<div><small>مدفوع</small><b class="num neg" data-jt="out">'+fmt(J.tout)+'</b></div>'+
-      '<div><small>الرصيد</small><b class="num '+(J.bal<0?'neg':'')+'" data-jt="bal">'+fmt(J.bal)+'</b></div>'+
-    '</div></div>';
+    sumBox()+'</div>';
   h+='<div class="card"><div class="sheet"><table class="xl"><thead><tr><th class="n">#</th><th class="c-date">التاريخ</th><th>الملحوظة</th><th class="c-amt">مستلم</th><th class="c-amt">مدفوع</th><th class="c-amt">الرصيد</th><th class="x" aria-label="حذف"></th></tr></thead><tbody>';
-  if(J.carry)h+='<tr class="carry"><td class="n"></td><td class="t">—</td><td class="t">رصيد منقول من الأشهر اللي قبل</td><td></td><td></td><td class="bal'+(J.carry<0?' neg':'')+'">'+fmt(J.carry)+'</td><td></td></tr>';
   if(!J.rows.length)h+='<tr><td class="n"></td><td colspan="6" style="padding:14px;text-align:center;color:var(--muted)">ما فيه شي مسجل في هالشهر. اضغط «سطر جديد» تحت.</td></tr>';
   J.rows.forEach(function(r,i){
     var b=J.run[r.id];
@@ -987,10 +988,26 @@ function vJournal(){
     '<div class="sheet-actions"><button class="btn" data-add-l>'+I.plus+' سطر جديد</button></div></div>';
   return h;
 }
+function jSums(){
+  var d=curJD(),ym=d.slice(0,7),y=d.slice(0,4),o={d:[0,0],m:[0,0],y:[0,0]};
+  S.ledger.forEach(function(r){var a=+r.in||0,b=+r.out||0,m=jRowMonth(r);
+    if(r.date===d){o.d[0]+=a;o.d[1]+=b;}
+    if(m===ym){o.m[0]+=a;o.m[1]+=b;}
+    if(m.slice(0,4)===y){o.y[0]+=a;o.y[1]+=b;}});
+  return o;
+}
+function sumBox(){
+  var o=jSums(),d=curJD(),p=d.split('-');
+  var rows=[['d','اليوم <small class="num">'+slash(d)+'</small>'],['m','الشهر <small>'+MONTHS[+p[1]-1]+'</small>'],['y','السنة <small class="num">'+p[0]+'</small>']];
+  return '<div class="sumbox"><div class="sumbox-h">المجموع</div><table><thead><tr><th></th><th>مستلم</th><th>مدفوع</th><th>الرصيد</th></tr></thead><tbody>'+
+    rows.map(function(x){var v=o[x[0]],n=v[0]-v[1];return '<tr><th>'+x[1]+'</th><td class="num pos" data-jt="'+x[0]+'-in">'+fmt(v[0])+'</td><td class="num neg" data-jt="'+x[0]+'-out">'+fmt(v[1])+'</td><td class="num '+(n<0?'neg':'')+'" data-jt="'+x[0]+'-bal">'+fmt(n)+'</td></tr>';}).join('')+
+    '</tbody></table></div>';
+}
 function refreshJournal(){
   var J=journalCalc(curJM());
   J.rows.forEach(function(r){var el=document.querySelector('[data-bal="'+r.id+'"]');if(el){el.textContent=rowEmpty(r)?'':fmt(J.run[r.id]);el.classList.toggle('neg',J.run[r.id]<0);}});
-  [['in',J.tin],['out',J.tout],['bal',J.bal],['in2',J.tin],['out2',J.tout],['bal2',J.bal]].forEach(function(x){var el=document.querySelector('[data-jt="'+x[0]+'"]');if(el){el.textContent=fmt(x[1]);if(x[0].indexOf('bal')===0)el.classList.toggle('neg',x[1]<0);}});
+  var o=jSums(),X=[['in2',J.tin],['out2',J.tout],['bal2',J.bal]];['d','m','y'].forEach(function(k){X.push([k+'-in',o[k][0]],[k+'-out',o[k][1]],[k+'-bal',o[k][0]-o[k][1]]);});
+  X.forEach(function(x){var el=document.querySelector('[data-jt="'+x[0]+'"]');if(el){el.textContent=fmt(x[1]);if(x[0].indexOf('bal')>=0)el.classList.toggle('neg',x[1]<0);}});
 }
 /* suppliers */
 function supList(){return S.accounts.filter(function(a){return a.kind==='sup';});}
@@ -1107,7 +1124,7 @@ function hubTiles(){
 }
 function hubReport(v,R){
   if(v==='journal'){var ym=curJM(),J=journalCalc(ym);R.title='يوميات شهر '+ymLabel(ym);R.sub=ymHijri(ym);
-    R.meta=[['منقول من قبل',n0(J.carry)],['مستلم',n0(J.tin)],['مدفوع',n0(J.tout)],['الرصيد',n0(J.bal)]];
+    var o=jSums();R.meta=[['مستلم الشهر',n0(J.tin)],['مدفوع الشهر',n0(J.tout)],['رصيد الشهر',n0(J.bal)],['مجموع السنة',n0(o.y[0])+' مستلم · '+n0(o.y[1])+' مدفوع · '+n0(o.y[0]-o.y[1])+' رصيد']];
     R.sections.push({title:'اليومية',cols:['التاريخ','الملحوظة','مستلم','مدفوع','الرصيد'],rows:J.rows.filter(function(r){return !rowEmpty(r)||r.note;}).map(function(r){return [slash(r.date),r.note||'',r.in===''?'':n0(r.in),r.out===''?'':n0(r.out),n0(J.run[r.id])];}),foot:['المجموع','',n0(J.tin),n0(J.tout),n0(J.bal)]});
     return R;}
   if(v==='suppliers'){var T=supAll();R.title='الموردين';R.meta=[['الفواتير',n0(T.bill)],['المدفوع',n0(T.pay)],['الباقي عليك',n0(T.due)]];
