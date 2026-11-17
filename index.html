@@ -416,7 +416,7 @@ label.btn{cursor:pointer}
 <div class="wrap" id="root"><p style="text-align:center;padding:40px;color:#56746e">جاري التحميل…</p></div>
 <div id="modal"></div>
 <div id="print-area" aria-hidden="true"></div>
-<script id="seed" type="application/json">{"settings": {"labels": {"rep": "المصاريف التشغيلية", "rest": "الباقي للشركاء والمصاريف التشغيلية"}, "ownerAnnual": 800000, "ownerName": "الغامدي", "title": "مجمع المحلات والمحطة", "year": "2026"}, "tenants": [{"id": "t1", "name": "فلان", "phone": "", "unitRent": 5000, "units": 2}, {"id": "t2", "name": "علان", "phone": "", "unitRent": 5000, "units": 3}, {"id": "t3", "name": "زعطان", "phone": "", "unitRent": 5000, "units": 1}, {"id": "t4", "name": "شركة المحطة", "phone": "", "unitRent": 70000, "units": 1}], "partners": [{"id": "p2", "name": "الشريك الثاني", "percent": 50}], "ledger": [{"date": "2026-11-11", "id": "lmwcjgyifyx6m", "in": "", "note": "ازببل", "out": ""}], "daily": {}, "months": [{"notes": "", "ownerPaid": true, "paid": {"t1": true, "t2": true, "t3": true, "t4": true}, "repairs": 3000}, {"notes": "زعطان متأخر", "ownerPaid": false, "paid": {"t1": true, "t2": true, "t4": true}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}]}</script>
+<script id="seed" type="application/json">{}</script>
 <script id="app">
 (function(){
 var SEED = JSON.parse(document.getElementById('seed').textContent);
@@ -559,7 +559,7 @@ function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slic
 
 /* ---------- sync with Firebase (offline first) ---------- */
 var ADMIN_EMAIL='goalalshghl@gmail.com';
-var COMPLEXES=[{id:'north',name:'مجمع الناصرية شمال',prefix:''},{id:'south',name:'مجمع الناصرية جنوب',prefix:'south_'},{id:'arish',name:'مجمع عريش بارك',prefix:'arish_'}];
+var COMPLEXES=[{id:'north',name:'المجمع الأول',prefix:''},{id:'south',name:'المجمع الثاني',prefix:'south_'},{id:'arish',name:'المجمع الثالث',prefix:'arish_'}];
 var cx=COMPLEXES[0];
 try{var _c=localStorage.getItem('cx');COMPLEXES.forEach(function(c){if(c.id===_c)cx=c;});}catch(e){}
 function px(path){return cx.prefix+path;}
