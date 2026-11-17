@@ -539,7 +539,7 @@ function dayForm(x,key){
   key=key||stampKey();
   dialog('<h3>'+(isNew?'إضافة حساب':'تعديل حساب')+'</h3>'+
     '<div class="field"><label for="f-date">التاريخ</label><input class="input num" type="date" id="f-date" value="'+key+'"><small class="hj num" id="f-hj">'+(hijri(key)?'يوافق '+hijri(key)+'هـ':'')+'</small></div>'+
-    '<div class="field"><label for="f-person">الاسم أو البيان</label><input class="input" id="f-person" value="'+esc(x.person)+'" placeholder="مثلاً: فلان، إيجار فتحتين"></div>'+
+    '<div class="field"><label for="f-person">الاسم أو البيان</label><input class="input" id="f-person" value="'+esc(x.person)+'" placeholder="مثلاً: الاسم، إيجار فتحتين"></div>'+
     '<div class="seg" role="radiogroup" aria-label="النوع"><label><input type="radio" name="f-kind" id="f-kind-in" value="in"'+(x.kind!=='out'?' checked':'')+'><span>مستلم</span></label><label class="out"><input type="radio" name="f-kind" id="f-kind-out" value="out"'+(x.kind==='out'?' checked':'')+'><span>مدفوع</span></label></div>'+
     '<div class="field"><label for="f-amount">المبلغ (ريال)</label><input class="input num" id="f-amount" inputmode="decimal" autocomplete="off" value="'+esc(amt(x.amount))+'"></div>'+
     '<div class="field"><label for="f-note">ملاحظة (اختياري)</label><input class="input" id="f-note" value="'+esc(x.note)+'"></div>'+
@@ -957,7 +957,7 @@ function vMonthlyBase(){
   h+='<div class="card form"><div class="card-head" style="margin:0"><span class="tile t-rose">'+I.wrench+'</span><div class="grow"><h2>المصاريف التشغيلية ونصيب '+ON()+'</h2><p>المصاريف التشغيلية تنخصم من حصة الشركاء</p></div></div>'+
     '<div class="field"><label for="rep">المصاريف التشغيلية لهالشهر (ريال)'+(+m.repairs>0&&m.repairsOn?' · '+dayLabel(m.repairsOn):'')+'</label><input class="input num" id="rep" inputmode="numeric" value="'+(+m.repairs||'')+'" placeholder="0"></div>'+
     '<button class="toggle'+(m.ownerPaid?' on':'')+'" data-owner aria-pressed="'+m.ownerPaid+'"><div><b>انصرف نصيب '+ON()+'</b><small class="num">'+fmt(ownerMonthly())+' ريال'+(m.ownerPaid&&m.ownerPaidOn?' · '+dayLabel(m.ownerPaidOn):'')+'</small></div><span class="sw"></span></button>'+
-    '<div class="field"><label for="notes">ملاحظات</label><textarea class="input" id="notes" placeholder="مثلاً: فلان بيدفع آخر الشهر">'+esc(m.notes)+'</textarea></div></div>';
+    '<div class="field"><label for="notes">ملاحظات</label><textarea class="input" id="notes" placeholder="مثلاً: الاسم بيدفع آخر الشهر">'+esc(m.notes)+'</textarea></div></div>';
   return h;
 }
 function vTenants(){
