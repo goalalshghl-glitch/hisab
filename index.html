@@ -18,7 +18,7 @@
 <style id="css">
 /* Layout: emerald gradient header card, sticky tab bar, white rounded cards on a pale mint field (single light theme, like the school portal) */
 :root{
-  --bg:#eef5f2; --surface:#ffffff; --ink:#12332c; --muted:#62807a; --line:#dde9e5;
+  --bg:#eef5f2; --surface:#ffffff; --ink:#12332c; --muted:#56746e; --line:#dde9e5;
   --accent:#0e7a64; --accent-deep:#0a4a40; --accent-soft:#e2f3ed;
   --sand:#fbf1dc; --sky:#e7f0fb; --rose:#fbe8e4;
   --good:#11865c; --warn:#b97c0c; --bad:#c03d2b;
@@ -28,12 +28,19 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);background-image:radial-gradient(900px 400px at 100% -10%,#dff1ea 0,transparent 60%);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;min-height:100vh}
+.wrap.wide{max-width:1080px}
 .wrap{max-width:760px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .wrap>*{min-width:0}
 body{overflow-x:hidden}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid #7cc9b3;outline-offset:2px}
+::selection{background:#cdeee2;color:#0a4a40}
+input,textarea{caret-color:#0c6b58}
+.sheet{scrollbar-width:thin;scrollbar-color:#9fcfbf #eef6f3}
+.sheet::-webkit-scrollbar{height:10px}
+.sheet::-webkit-scrollbar-track{background:#eef6f3;border-radius:0 0 14px 14px}
+.sheet::-webkit-scrollbar-thumb{background:#9fcfbf;border-radius:10px;border:2px solid #eef6f3}
 .num{font-variant-numeric:tabular-nums}
 
 /* header */
@@ -229,7 +236,8 @@ label.btn{cursor:pointer}
 .hub .tile svg{width:21px;height:21px}
 .hub-t{display:grid;gap:3px;flex:1;min-width:0}
 .hub-t b{font-size:16px;font-weight:800}
-.hub-t small{color:var(--muted);font-size:12.5px}
+.hub-t small{color:var(--muted);font-size:12.5px;line-height:1.5}
+.hub-t small .num{white-space:nowrap}
 .hub .chev{font-size:22px;color:var(--muted)}
 .jm-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:4px 0 12px}
 .jm-nav .input{text-align:center}
@@ -251,7 +259,9 @@ label.btn{cursor:pointer}
 .xl tr.carry td{background:#f6faf9;color:var(--muted)}
 .xl td.t{padding:6px 10px;vertical-align:middle}
 .xl td.t .hj{display:block;font-size:11px;color:var(--muted)}
-.xl.ro{min-width:640px}
+.xl.ro{min-width:600px}
+.xl.ro td.t{white-space:normal;overflow-wrap:anywhere;line-height:1.45;padding:8px 10px}
+.xl.ro th.x2,.xl.ro td.x2{width:96px}
 .xl td.x2{width:96px;text-align:center;white-space:nowrap}
 .xl td.x2 .icon-btn{display:inline-grid;width:34px;height:34px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -262,7 +272,8 @@ label.btn{cursor:pointer}
 .row.obl.done{opacity:.7}
 .row.obl{flex-wrap:wrap}
 .row.obl .info{flex:1;min-width:0}
-.row.obl .actions{flex-basis:100%;display:flex;gap:8px;justify-content:flex-end;padding-top:8px;margin-top:4px;border-top:1px dashed #e3eeea}
+.row.obl .actions .btn{white-space:nowrap;flex:none}
+.row.obl .actions{flex-basis:100%;display:flex;gap:8px;justify-content:flex-end;align-items:center;padding-top:8px;margin-top:4px;border-top:1px dashed #e3eeea}
 .jm-b{width:44px;height:44px;padding:0;font-size:18px;justify-content:center}
 .xl tr.carry td.t{white-space:nowrap}
 .cx-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 14px;padding:6px;border-radius:18px;background:#fff;border:1px solid rgba(15,90,70,.12);box-shadow:0 6px 18px -12px rgba(15,60,50,.35)}
@@ -290,11 +301,11 @@ label.btn{cursor:pointer}
   .pr-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0b5a4d;padding-bottom:10px;margin-bottom:14px}
   .pr-cx{font-size:13px;color:#0e7a64;font-weight:700}
   #print-area h1{margin:2px 0;font-size:24px}
-  #print-area p{margin:0;color:#62807a;font-size:13px}
-  .pr-stamp{font-size:11px;color:#62807a}
+  #print-area p{margin:0;color:#56746e;font-size:13px}
+  .pr-stamp{font-size:11px;color:#56746e}
   .pr-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
   .pr-meta div{border:1px solid #dde9e5;border-radius:8px;padding:8px 10px}
-  .pr-meta small{display:block;color:#62807a;font-size:11px}
+  .pr-meta small{display:block;color:#56746e;font-size:11px}
   .pr-meta b{font-size:15px}
   #print-area h2{font-size:16px;margin:16px 0 6px;color:#0a4a40}
   #print-area table{width:100%;border-collapse:collapse;font-size:12px;page-break-inside:auto}
@@ -316,7 +327,7 @@ label.btn{cursor:pointer}
 
 /* excel-like ledger */
 .sheet{overflow-x:auto;border:1px solid #cfe0da;border-radius:14px;background:#fff}
-.xl{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+.xl{border-collapse:collapse;width:100%;min-width:760px;font-size:14px;table-layout:fixed}
 .xl th,.xl td{border:1px solid #dbe7e3;padding:0;height:40px}
 .xl thead th{background:#e6f3ee;color:var(--accent-deep);font-weight:800;font-size:13.5px;padding:0 10px}
 .xl thead th.n,.xl td.n{width:40px;text-align:center;background:#f3f8f6;color:var(--muted);font-size:12.5px;font-weight:700}
@@ -328,8 +339,9 @@ label.btn{cursor:pointer}
 .xl .c-amt{width:120px}
 .xl .c-in input{color:var(--good)}
 .xl .c-out input{color:var(--bad)}
+.xl th.c-amt{width:120px}
 .xl td.bal{width:130px;padding:0 10px;text-align:left;font-weight:800;font-variant-numeric:tabular-nums;background:#fafdfc}
-.xl td.x{width:44px;text-align:center}
+.xl th.x,.xl td.x{width:44px;text-align:center}
 .xl td.x button{border:0;background:transparent;color:#a9bcb7;width:36px;height:36px;border-radius:9px;display:inline-grid;place-items:center}
 .xl td.x button:hover{color:var(--bad);background:var(--rose)}
 .xl td.x svg{width:16px;height:16px}
@@ -338,13 +350,21 @@ label.btn{cursor:pointer}
 .sheet-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 
 @media (max-width:480px){
-  .xl{min-width:540px;font-size:13px}
+  .xl{min-width:660px;font-size:13px}
+  .xl.ro{min-width:600px}
+  .xl.ro th.x2,.xl.ro td.x2{width:84px}
   .xl .c-date{width:122px}
-  .xl .c-amt,.xl td.bal{width:92px}
+  .xl th.c-amt,.xl .c-amt,.xl td.bal{width:92px}
   .xl input{padding:0 6px;font-size:13px}
   .xl td.bal,.xl tfoot td{padding:0 6px}
-  .hero h1{font-size:25px}
-  .hero-badge{width:70px;height:70px}
+  .hero{padding:18px 18px}
+  .hero h1{font-size:24px;margin-top:8px}
+  .hero p.today{font-size:12.5px}
+  .hero-badge{width:60px;height:60px;border-radius:18px}
+  .hero-badge svg{width:30px;height:30px}
+  .hero-badge i{width:28px;height:28px;border-radius:10px;bottom:-6px;left:-6px}
+  .hero-badge i svg{width:15px;height:15px}
+  .hero-foot{margin-top:10px}
   .months{grid-template-columns:repeat(4,1fr)}
   .two{grid-template-columns:1fr}
   .kpi b{font-size:19px}
@@ -354,7 +374,7 @@ label.btn{cursor:pointer}
 </style>
 </head>
 <body>
-<div class="wrap" id="root"><p style="text-align:center;padding:40px;color:#62807a">جاري التحميل…</p></div>
+<div class="wrap" id="root"><p style="text-align:center;padding:40px;color:#56746e">جاري التحميل…</p></div>
 <div id="modal"></div>
 <div id="print-area" aria-hidden="true"></div>
 <script id="seed" type="application/json">{"settings": {"labels": {"rep": "المصاريف التشغيلية", "rest": "الباقي للشركاء والمصاريف التشغيلية"}, "ownerAnnual": 800000, "ownerName": "الغامدي", "title": "مجمع المحلات والمحطة", "year": "2026"}, "tenants": [{"id": "t1", "name": "فلان", "phone": "", "unitRent": 5000, "units": 2}, {"id": "t2", "name": "علان", "phone": "", "unitRent": 5000, "units": 3}, {"id": "t3", "name": "زعطان", "phone": "", "unitRent": 5000, "units": 1}, {"id": "t4", "name": "شركة المحطة", "phone": "", "unitRent": 70000, "units": 1}], "partners": [{"id": "p2", "name": "الشريك الثاني", "percent": 50}], "ledger": [{"date": "2026-11-11", "id": "lmwcjgyifyx6m", "in": "", "note": "ازببل", "out": ""}], "daily": {}, "months": [{"notes": "", "ownerPaid": true, "paid": {"t1": true, "t2": true, "t3": true, "t4": true}, "repairs": 3000}, {"notes": "زعطان متأخر", "ownerPaid": false, "paid": {"t1": true, "t2": true, "t4": true}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}, {"notes": "", "ownerPaid": false, "paid": {}, "repairs": 0}]}</script>
@@ -984,7 +1004,7 @@ function vJournal(){
     var b=J.run[r.id];
     h+='<tr'+(r.date===curJD()?' class="sel-day"':'')+'><td class="n">'+(i+1)+'</td>'+
       '<td class="c-date"><input type="date" id="l-'+r.id+'-date" data-l="'+r.id+'" data-f="date" value="'+esc(r.date)+'" aria-label="التاريخ، سطر '+(i+1)+'"><small class="hj num" data-hj="'+r.id+'">'+(hijri(r.date)?hijri(r.date)+'هـ':'')+'</small></td>'+
-      '<td><input id="l-'+r.id+'-note" data-l="'+r.id+'" data-f="note" value="'+esc(r.note)+'" placeholder="اكتب الملحوظة" aria-label="الملحوظة، سطر '+(i+1)+'"></td>'+
+      '<td><input id="l-'+r.id+'-note" data-l="'+r.id+'" data-f="note" value="'+esc(r.note)+'" title="'+esc(r.note)+'" placeholder="اكتب الملحوظة" aria-label="الملحوظة، سطر '+(i+1)+'"></td>'+
       '<td class="c-in"><input class="amt" inputmode="decimal" autocomplete="off" id="l-'+r.id+'-in" data-l="'+r.id+'" data-f="in" value="'+esc(amt(r.in))+'" aria-label="مستلم، سطر '+(i+1)+'"></td>'+
       '<td class="c-out"><input class="amt" inputmode="decimal" autocomplete="off" id="l-'+r.id+'-out" data-l="'+r.id+'" data-f="out" value="'+esc(amt(r.out))+'" aria-label="مدفوع، سطر '+(i+1)+'"></td>'+
       '<td class="bal'+(b<0?' neg':'')+'" data-bal="'+r.id+'">'+(rowEmpty(r)?'':fmt(b))+'</td>'+
@@ -1256,7 +1276,7 @@ function imageReport(R,done){
     var cols=R.meta.length>=4?3:R.meta.length,cw=(W-2*P-(cols-1)*14)/cols;
     R.meta.forEach(function(m,i){var r=Math.floor(i/cols),c=i%cols,x=W-P-c*(cw+14),yy=y+r*92;
       parts.push('<rect x="'+(x-cw)+'" y="'+yy+'" width="'+cw+'" height="80" rx="14" fill="#f2f8f6" stroke="#dde9e5"/>');
-      var mv=String(m[1]),fs=mv.length>24?16:mv.length>16?19:24;txt(x-16,yy+30,clip(m[0],30),16,500,'#62807a');txt(x-16,yy+62,clip(mv,Math.floor(cw/(fs*0.55))),fs,800);});
+      var mv=String(m[1]),fs=mv.length>24?16:mv.length>16?19:24;txt(x-16,yy+30,clip(m[0],30),16,500,'#56746e');txt(x-16,yy+62,clip(mv,Math.floor(cw/(fs*0.55))),fs,800);});
     y+=Math.ceil(R.meta.length/cols)*92+16;
   }
   R.sections.forEach(function(sct){
@@ -1264,7 +1284,7 @@ function imageReport(R,done){
     var n=sct.cols.length,first=n>=4?0.34:0.4,widths=sct.cols.map(function(_,i){return i===0?first:(1-first)/(n-1);}),tw=W-2*P;
     function row(cells,bg,weight,color){parts.push('<rect x="'+P+'" y="'+y+'" width="'+tw+'" height="44" fill="'+bg+'"/>');var x=W-P;cells.forEach(function(c,i){var w=widths[i]*tw;txt(x-12,y+29,clip(c,Math.max(6,Math.floor(w/11))),17,weight,color);x-=w;});parts.push('<line x1="'+P+'" x2="'+(W-P)+'" y1="'+(y+44)+'" y2="'+(y+44)+'" stroke="#e3ece9"/>');y+=44;}
     row(sct.cols,'#e6f3ee',800,'#0a4a40');
-    if(!sct.rows.length)row(['لا يوجد'],'#ffffff',400,'#62807a');
+    if(!sct.rows.length)row(['لا يوجد'],'#ffffff',400,'#56746e');
     sct.rows.forEach(function(r,i){row(r,i%2?'#fafcfb':'#ffffff',500);});
     if(sct.foot)row(sct.foot,'#f2f8f6',800);
     y+=24;
@@ -1440,6 +1460,7 @@ function render(){
   if(adminUnverified()){root.innerHTML=vVerify();return;}
   if(!approved()){root.innerHTML=profile?vWait():vLoading();return;}
   if(view==='users')view='setup';
+  root.classList.toggle('wide',['journal','supplier','links','expenses'].indexOf(view)>=0);
   if(view==='tenants'||view==='partners')view='home';
   if(!loaded){root.innerHTML=header()+vLoading('جاري تحميل البيانات…');refreshStatus();return;}
   var body={home:function(){return '';},monthly:vMonthly,tenants:vTenants,expenses:vExpenses,partners:vPartners,setup:function(){return vSetup()+(isAdmin()?vUsers():'');},users:vUsers,account:vAccount,summary:vSummary,journal:vJournal,suppliers:vSuppliers,supplier:vSupplier,obligations:vObligations,links:vLinks}[view]();
